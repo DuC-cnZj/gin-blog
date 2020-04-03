@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/youngduc/go-blog/hello/config"
+	"github.com/youngduc/go-blog/hello/middleware"
 	"github.com/youngduc/go-blog/hello/models"
-	"github.com/youngduc/go-blog/hello/routers"
+	"github.com/youngduc/go-blog/hello/routes"
 	"log"
 	"net/http"
 	"os"
@@ -31,6 +32,8 @@ func main() {
 	app := config.Config.App
 
 	e := gin.Default()
+	gin.SetMode(config.Config.App.RunMode)
+	e.Use(middleware.DumpUrl())
 
 	// 初始化路由
 	routers.Init(e)
