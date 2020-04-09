@@ -1,52 +1,43 @@
 package models
 
 import (
+	"database/sql/driver"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	"github.com/youngduc/go-blog/hello/config"
-	"log"
+	"time"
 )
 
-var db *gorm.DB
-
 type Model struct {
-	ID int `gorm:"primary_key" json:"id"`
-	CreatedOn int `json:"created_on"`
-	ModifiedOn int `json:"modified_on"`
+	Id int `gorm:"primary_key" json:"id"`
+	CreatedAt JSONTime `json:"created_on"`
+	UpdatedAt JSONTime `json:"updated_at"`
 }
 
-func Init() {
-	var (
-		err error
-	)
+type JSONTime struct {
+	time.Time
+}
 
-	dbConfig := config.Config.DB
+// MarshalJSON on JSONTime format Time field with %Y-%m-%d %H:%M:%S
+func (t JSONTime) MarshalJSON() ([]byte, error) {
+	formatted := fmt.Sprintf("\"%s\"", t.Format("2006-01-02 15:04:05"))
+	return []byte(formatted), nil
+}
 
-	db, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		dbConfig.Username,
-		dbConfig.Password,
-		dbConfig.Host,
-		dbConfig.Database))
-
-	if err != nil {
-		log.Println(err)
+// Value insert timestamp into mysql need this function.
+func (t JSONTime) Value() (driver.Value, error) {
+	var zeroTime time.Time
+	if t.Time.UnixNano() == zeroTime.UnixNano() {
+		return nil, nil
 	}
+	return t.Time, nil
+}
 
-	gorm.DefaultTableNameHandler = func (db *gorm.DB, defaultTableName string) string  {
-		return dbConfig.Prefix + defaultTableName
+// Scan valueof time.Time
+func (t *JSONTime) Scan(v interface{}) error {
+	value, ok := v.(time.Time)
+	if ok {
+		*t = JSONTime{Time: value}
+		return nil
 	}
-
-	db.SingularTable(true)
-	db.LogMode(true)
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
-}
-
-func CloseDB() {
-	defer db.Close()
-}
-
-func Ping() error {
-	return db.DB().Ping()
+	return fmt.Errorf("can not convert %v to timestamp", v)
 }

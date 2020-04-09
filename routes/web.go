@@ -6,7 +6,7 @@ import (
 	"github.com/youngduc/go-blog/hello/controllers/auth_controller"
 	"github.com/youngduc/go-blog/hello/controllers/category_controller"
 	"github.com/youngduc/go-blog/hello/controllers/comment_controller"
-	"github.com/youngduc/go-blog/hello/models"
+	"github.com/youngduc/go-blog/hello/models/dao"
 	"net/http"
 	"runtime"
 	"time"
@@ -82,7 +82,7 @@ func Root() func(context *gin.Context) {
 }
 
 func Ping(c *gin.Context) {
-	ping := models.Ping()
+	ping := dao.Dao.Ping()
 	if ping == nil {
 		c.JSON(200, gin.H{
 			"status": "ok",

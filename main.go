@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/youngduc/go-blog/hello/config"
 	"github.com/youngduc/go-blog/hello/middleware"
-	"github.com/youngduc/go-blog/hello/models"
+	"github.com/youngduc/go-blog/hello/models/dao"
 	"github.com/youngduc/go-blog/hello/routes"
 	"log"
 	"net/http"
@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 )
+
 
 func main() {
 	viper.SetConfigFile(".env")
@@ -27,7 +28,7 @@ func main() {
 	}
 	// 初始化配置
 	config.Init()
-	models.Init()
+	dao.Init()
 
 	app := config.Config.App
 
@@ -54,6 +55,6 @@ func main() {
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
 	<-c
 	err = s.Shutdown(ctx)
-	models.CloseDB()
+	dao.Dao.CloseDB()
 	log.Println("平滑关闭")
 }
