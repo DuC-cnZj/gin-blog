@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"github.com/youngduc/go-blog/hello/resources"
 )
 
 type Article struct {
@@ -40,11 +39,3 @@ type Article struct {
 //$table->boolean('display')->default(true);
 //$table->timestamp('top_at')->nullable();
 //$table->timestamps();
-func Get(id int64) *resources.Article {
-	var article resources.Article
-	//db.Table("articles").Select("id,author_id,category_id,content,`desc`,title,head_image,display,top_at,created_at").
-	//	Where("id = ?", id).
-	//	First(&article)
-
-	return &article
-}
