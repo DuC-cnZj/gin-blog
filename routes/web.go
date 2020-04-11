@@ -13,39 +13,53 @@ import (
 )
 
 func Init(router *gin.Engine) *gin.Engine {
-	router.GET("/", Root())
+	//done
+	router.GET("/", Root)
 
+	//done
 	router.GET("/ping", Ping)
 
+	//done
 	router.GET("/nav_links", NavLinks)
+
+	//done
+	router.GET("/categories", category_controller.Index)
+
+	//done
+	router.GET("/articles/:id/comments", comment_controller.Index)
+
+	//done
+	router.GET("/articles/:id", article_controller.Show)
+
+	//done
+	router.GET("/articles", article_controller.Index)
+
+	//done
+	router.GET("/home_articles", article_controller.Home)
+
+	//done
+	router.GET("/newest_articles", article_controller.Newest)
+
+	//done
+	router.GET("/popular_articles", article_controller.Popular)
+
+	//done
+	router.GET("/top_articles", article_controller.Top)
+
+	//done
+	router.POST("/articles/:id/comments", comment_controller.Store)
+
+	//done
+	router.GET("/trending_articles", article_controller.Trending)
+
+	//done
+	router.GET("/search_articles", article_controller.Search)
 
 	router.GET("/login/github", auth_controller.RedirectToProvider)
 
 	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
 
 	router.GET("/auth/me", auth_controller.Me)
-
-	router.GET("/articles/:id", article_controller.Show)
-
-	router.GET("/articles", article_controller.Index)
-
-	router.GET("/search_articles", article_controller.Search)
-
-	router.GET("/home_articles", article_controller.Home)
-
-	router.GET("/newest_articles", article_controller.Newest)
-
-	router.GET("/popular_articles", article_controller.Popular)
-
-	router.GET("/trending_articles", article_controller.Trending)
-
-	router.GET("/top_articles", article_controller.Top)
-
-	router.GET("/categories", category_controller.Index)
-
-	router.GET("/articles/:id/comments", comment_controller.Index)
-
-	router.POST("/articles", comment_controller.Store)
 
 	return router
 }
@@ -60,9 +74,8 @@ func NavLinks(context *gin.Context) {
 	})
 }
 
-func Root() func(context *gin.Context) {
-	return func(context *gin.Context) {
-		context.String(http.StatusOK, `
+func Root(context *gin.Context) {
+	context.String(http.StatusOK, `
 	# welcome! power by %s 
 	
 	      $$\                    $$\               $$\       $$\                     
@@ -78,7 +91,6 @@ func Root() func(context *gin.Context) {
 	                                                                        \______/ 
 	created by duc@2018-%s.
 	`, runtime.Version(), time.Now().Format("2006"))
-	}
 }
 
 func Ping(c *gin.Context) {

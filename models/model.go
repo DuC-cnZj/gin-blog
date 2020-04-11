@@ -13,6 +13,12 @@ type Model struct {
 	UpdatedAt JSONTime `json:"updated_at"`
 }
 
+type Paginator struct {
+	Total int `json:"total"`
+	CurrentPage int `json:"current_page"`
+	PerPage int `json:"per_page"`
+}
+
 type JSONTime struct {
 	time.Time
 }

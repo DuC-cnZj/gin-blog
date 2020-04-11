@@ -11,6 +11,8 @@ type Comment struct {
 	UserableType string `json:"userable_type" gorm:"default:''"`
 
 	Author  *User
+
+	Replies []Comment `json:"replies"`
 	//Article *Article
 }
 

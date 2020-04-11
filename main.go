@@ -31,6 +31,7 @@ func main() {
 	dao.Init()
 
 	app := config.Config.App
+	log.Println(config.Config.ES)
 
 	e := gin.Default()
 	gin.SetMode(config.Config.App.RunMode)
