@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -13,14 +14,31 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 )
 
+var (
+	configPath string
+)
+
+func init() {
+	flag.StringVar(&configPath, "config", ".env", "-config .env")
+}
 
 func main() {
-	viper.SetConfigFile(".env")
-	viper.AddConfigPath(".")
+	flag.Parse()
+	if configPath == "" {
+		configPath = ".env"
+	}
+	if !path.IsAbs(configPath) {
+		viper.AddConfigPath(".")
+	}
+	log.Println(configPath)
+
+	viper.SetConfigFile(configPath)
+	log.Println(configPath)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatal(err)

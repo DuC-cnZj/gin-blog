@@ -4,13 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/hello/config"
 	"github.com/youngduc/go-blog/hello/models"
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
+
+
+type content struct {
+	Md   string `json:"md"`
+	Html string `json:"html"`
+}
 
 func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 	var articles []models.Article
@@ -37,34 +45,53 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 	}
 }
 
-func (dao *dao) ShowArticle(id int) *models.Article {
-	article := &models.Article{}
-	dao.db.
-		Preload("Author").
-		Preload("Category").
-		Preload("Tags").
-		Where("id = ?", id).
-		Where("display = ?", true).
-		Find(article)
+func cacheKey(key string) string {
+	return fmt.Sprintf("%s%s", config.Config.RedisPrefix, key)
+}
+func (dao *dao) ShowArticle(id int) interface{} {
+	key := cacheKey("article:" + strconv.Itoa(id))
+	s, e := dao.redis.Get(key).Result()
+	if e == redis.Nil {
+		article := &models.Article{}
+		dao.db.
+			Preload("Author").
+			Preload("Category").
+			Preload("Tags").
+			Where("id = ?", id).
+			Where("display = ?", true).
+			Find(article)
 
-	type content struct {
-		Md   string `json:"md"`
-		Html string `json:"html"`
+		var c content
+		e := json.Unmarshal([]byte(article.Content), &c)
+
+		if e != nil {
+			log.Fatal(e)
+		}
+
+		article.Content = c.Html
+		article.ContentMd = c.Md
+		if article.TopAt != nil && !article.TopAt.IsZero() {
+			article.IsTop = true
+		}
+
+		bytes, _ := json.Marshal(article)
+		result, e := dao.redis.Set(key, string(bytes), 86400*time.Second).Result()
+		if e != nil {
+			log.Println(e)
+		}
+		log.Println("redis result: ", result)
+
+		return article
+	} else {
+		var article models.Article
+
+		e := json.Unmarshal([]byte(s), &article)
+
+		log.Println(s,e)
+
+		return article
 	}
-	var c content
-	e := json.Unmarshal([]byte(article.Content), &c)
 
-	if e != nil {
-		log.Fatal(e)
-	}
-
-	article.Content = c.Html
-	article.ContentMd = c.Md
-	if !article.TopAt.IsZero() {
-		article.IsTop = true
-	}
-
-	return article
 }
 
 func (dao *dao) HomeArticles() []models.Article {
@@ -177,6 +204,14 @@ func (dao *dao) Search(q string) []*models.Article {
 		Where("display = ?", true).
 		Find(&articles)
 	for _, v := range articles {
+		var c content
+		e := json.Unmarshal([]byte(v.Content), &c)
+
+		if e != nil {
+			log.Fatal(e)
+		}
+		v.Content = c.Html
+		v.ContentMd = c.Md
 		if data, ok := highIdMap[strconv.Itoa(v.Id)]; ok {
 			v.Highlight = data
 		}

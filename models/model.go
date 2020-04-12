@@ -4,12 +4,13 @@ import (
 	"database/sql/driver"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"strings"
 	"time"
 )
 
 type Model struct {
 	Id int `gorm:"primary_key" json:"id"`
-	CreatedAt JSONTime `json:"created_on"`
+	CreatedAt JSONTime `json:"created_at"`
 	UpdatedAt JSONTime `json:"updated_at"`
 }
 
@@ -21,6 +22,13 @@ type Paginator struct {
 
 type JSONTime struct {
 	time.Time
+}
+
+func (t *JSONTime) UnmarshalJSON(b []byte) error  {
+	parse, e := time.Parse("2006-01-02 15:04:05", strings.Trim( string(b), "\""))
+	fmt.Println(parse,e)
+	t.Time = parse
+	return nil
 }
 
 // MarshalJSON on JSONTime format Time field with %Y-%m-%d %H:%M:%S

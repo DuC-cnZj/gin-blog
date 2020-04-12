@@ -2,25 +2,33 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v6"
 	"github.com/spf13/viper"
-	"io/ioutil"
 	"log"
+	"sync"
 	"time"
 )
 
-var Config *config
+var (
+	Config *config
+	once   sync.Once
+)
 
 type es struct {
 	SearchQuery string
 	Highlight   *elastic.Highlight
 	MultiMatch  multiMatch
+	Host        string
 }
 
 type config struct {
-	App *app
-	DB  *db
-	ES  es
+	App   *app
+	DB    *db
+	ES    es
+	Redis *redis.Options
+	RedisPrefix string
 }
 
 type multiMatch struct {
@@ -43,22 +51,31 @@ type multiMatch struct {
 }
 
 func Init() *config {
-	Config = &config{
-		DB:  InitDB(),
-		App: InitApp(),
-		ES:  initES(),
-	}
+	once.Do(func() {
+		Config = &config{
+			DB:    InitDB(),
+			App:   InitApp(),
+			ES:    initES(),
+			Redis: InitRedis(),
+			RedisPrefix: viper.GetString("REDIS_PREFIX"),
+		}
+	})
 
 	return Config
 }
 
+func InitRedis() *redis.Options {
+	return &redis.Options{
+		Addr: fmt.Sprintf("%s:%s", viper.GetString("REDIS_HOST"), viper.GetString("REDIS_PORT")),
+		DB:   viper.GetInt("REDIS_DB"),
+	}
+}
+
 func initES() es {
 	var es es
-	bytes, e := ioutil.ReadFile("./config/es_search.json")
-	if e != nil {
-		log.Fatal(e)
-	}
-	es.SearchQuery = string(bytes)
+	es.Host = viper.GetString("ES_HOST")
+	log.Println("es hosts:", es.Host)
+	es.SearchQuery = esSearchConfig()
 	var multiMatch multiMatch
 	json.Unmarshal([]byte(es.SearchQuery), &multiMatch)
 	var Fields []*elastic.HighlighterField
@@ -90,6 +107,52 @@ func InitApp() *app {
 		ReadTimeout:  time.Duration(viper.GetInt64("READ_TIMEOUT")),
 		WriteTimeout: time.Duration(viper.GetInt64("WRITE_TIMEOUT")),
 	}
+}
+
+func esSearchConfig() string {
+	return `
+{
+  "query" : {
+    "multi_match": {
+      "query": "%s",
+      "fields": ["content", "title^2", "desc^2", "tags^3", "article_category.name^4", "author.name^5"],
+      "analyzer": "ik_smart"
+    }
+  },
+  "fields":{
+    "title":{
+      "type":"plain",
+      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+      "post_tags":"</span>"
+    },
+    "tags":{
+      "type":"plain",
+      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+      "post_tags":"</span>"
+    },
+    "article_category.name":{
+      "type":"plain",
+      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+      "post_tags":"</span>"
+    },
+    "content":{
+      "type":"plain",
+      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+      "post_tags":"</span>",
+      "fragment_size":10,
+      "number_of_fragments":2
+    },
+    "desc":{
+      "type":"plain",
+      "fragment_size":10,
+      "number_of_fragments":2
+    }
+  },
+  "pre_tags":"<span style='color:red'>",
+  "post_tags":"</span>"
+}
+
+`
 }
 
 type app struct {

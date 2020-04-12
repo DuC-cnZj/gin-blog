@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
 	"github.com/pkg/errors"
@@ -16,6 +17,7 @@ var Dao *dao
 type dao struct {
 	db *gorm.DB
 	es *elastic.Client
+	redis *redis.Client
 }
 
 func Init() {
@@ -30,6 +32,7 @@ func Init() {
 
 	// Obtain a client. You can also provide your own HTTP client here.
 	client, err := elastic.NewClient(
+		elastic.SetURL(config.Config.ES.Host),
 		elastic.SetErrorLog(errorlog),
 		elastic.SetSniff(false),
 	)
@@ -41,7 +44,7 @@ func Init() {
 	}
 
 	// Ping the Elasticsearch server to get e.g. the version number
-	info, code, err := client.Ping("http://localhost:9200").Do(context.Background())
+	info, code, err := client.Ping(config.Config.ES.Host).Do(context.Background())
 	if err != nil {
 		// Handle error
 		panic(err)
@@ -49,19 +52,13 @@ func Init() {
 	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
 
 	// Getting the es version number is quite common, so there's a shortcut
-	esversion, err := client.ElasticsearchVersion("http://localhost:9200")
+	esversion, err := client.ElasticsearchVersion(config.Config.ES.Host)
 	if err != nil {
 		// Handle error
 		panic(err)
 	}
 	fmt.Printf("Elasticsearch version %s\n", esversion)
 	Dao.es = client
-	//es, err := elastic.NewClient(elastic.SetURL("http://127.0.0.1:9200"))
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-
-	//Dao.es = es
 
 	// DB
 	dbConfig := config.Config.DB
@@ -84,6 +81,14 @@ func Init() {
 	Dao.db.LogMode(true)
 	Dao.db.DB().SetMaxIdleConns(10)
 	Dao.db.DB().SetMaxOpenConns(100)
+
+	Dao.redis = redis.NewClient(config.Config.Redis)
+
+	_, err = Dao.redis.Ping().Result()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (dao *dao) CloseDB() {
