@@ -15,8 +15,8 @@ import (
 var Dao *dao
 
 type dao struct {
-	db *gorm.DB
-	es *elastic.Client
+	db    *gorm.DB
+	es    *elastic.Client
 	redis *redis.Client
 }
 

@@ -58,7 +58,6 @@ func (dao *dao) StoreComment(c *gin.Context) *models.Comment {
 		Author:       nil,
 	}
 
-
 	row := new(models.Comment)
 	dao.db.Create(&comment).Scan(&row)
 
