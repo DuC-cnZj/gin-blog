@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-
 type content struct {
 	Md   string `json:"md"`
 	Html string `json:"html"`
@@ -48,6 +47,7 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 func cacheKey(key string) string {
 	return fmt.Sprintf("%s%s", config.Config.RedisPrefix, key)
 }
+
 func (dao *dao) ShowArticle(id int) interface{} {
 	key := cacheKey("article:" + strconv.Itoa(id))
 	s, e := dao.redis.Get(key).Result()
@@ -87,11 +87,10 @@ func (dao *dao) ShowArticle(id int) interface{} {
 
 		e := json.Unmarshal([]byte(s), &article)
 
-		log.Println(s,e)
+		log.Println(s, e)
 
 		return article
 	}
-
 }
 
 func (dao *dao) HomeArticles() []models.Article {
@@ -105,6 +104,7 @@ func (dao *dao) HomeArticles() []models.Article {
 
 	return articles
 }
+
 func (dao *dao) TopArticles() []*models.Article {
 	var articles []*models.Article
 	dao.db.
