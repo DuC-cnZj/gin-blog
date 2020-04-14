@@ -35,11 +35,10 @@ func main() {
 	if !path.IsAbs(configPath) {
 		viper.AddConfigPath(".")
 	}
-	log.Println(configPath)
-
 	viper.SetConfigFile(configPath)
-	log.Println(configPath)
+
 	err := viper.ReadInConfig()
+
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -49,7 +48,6 @@ func main() {
 	dao.Init()
 
 	app := config.Config.App
-	log.Println(config.Config.ES)
 
 	e := gin.Default()
 	gin.SetMode(config.Config.App.RunMode)

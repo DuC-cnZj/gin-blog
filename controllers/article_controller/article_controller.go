@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/hello/controllers"
 	"github.com/youngduc/go-blog/hello/models/dao"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -14,8 +13,7 @@ func Index(ctx *gin.Context) {
 
 	s, b := ctx.GetQuery("page")
 	if b {
-		i, e := strconv.Atoi(s)
-		log.Println(e, i)
+		i, _ := strconv.Atoi(s)
 		page = i
 	}
 	s, b = ctx.GetQuery("page_size")
@@ -41,6 +39,7 @@ func Show(ctx *gin.Context) {
 func Search(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dao.Dao.Search(ctx.Query("q")))
 }
+
 func Home(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dao.Dao.HomeArticles())
 }
@@ -48,12 +47,15 @@ func Home(ctx *gin.Context) {
 func Newest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dao.Dao.NewestArticles())
 }
+
 func Popular(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dao.Dao.PopularArticles())
 }
+
 func Trending(ctx *gin.Context) {
 
 }
+
 func Top(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, dao.Dao.TopArticles())
 }

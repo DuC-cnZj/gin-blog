@@ -9,10 +9,7 @@ import (
 
 func Index(c *gin.Context)  {
 	param := c.Param("id")
-	articleId, e := strconv.Atoi(param)
-	if e != nil {
-		panic(e)
-	}
+	articleId, _ := strconv.Atoi(param)
 	c.JSON(http.StatusOK, dao.Dao.IndexComments(articleId))
 }
 
