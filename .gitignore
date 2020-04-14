@@ -1,4 +1,4 @@
 go-blog
 /blog
 main
-./.env.*
+.env*

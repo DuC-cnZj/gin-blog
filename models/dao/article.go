@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v7"
+	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/hello/config"
 	"github.com/youngduc/go-blog/hello/models"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -48,24 +50,29 @@ func cacheKey(key string) string {
 	return fmt.Sprintf("%s%s", config.Config.RedisPrefix, key)
 }
 
-func (dao *dao) ShowArticle(id int) interface{} {
+func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
 	key := cacheKey("article:" + strconv.Itoa(id))
 	s, e := dao.redis.Get(key).Result()
 	if e == redis.Nil {
 		article := &models.Article{}
-		dao.db.
+		e := dao.db.
 			Preload("Author").
 			Preload("Category").
 			Preload("Tags").
 			Where("id = ?", id).
 			Where("display = ?", true).
-			Find(article)
+			Find(article).
+			Error
+
+		if e != nil && e == gorm.ErrRecordNotFound {
+			return nil, &ModelNotFound{Id: id, Model: "article", Code: http.StatusNotFound}
+		}
 
 		var c content
-		e := json.Unmarshal([]byte(article.Content), &c)
+		e = json.Unmarshal([]byte(article.Content), &c)
 
 		if e != nil {
-			log.Fatal(e)
+			return nil, e.(BaseError)
 		}
 
 		article.Content = c.Html
@@ -75,21 +82,23 @@ func (dao *dao) ShowArticle(id int) interface{} {
 		}
 
 		bytes, _ := json.Marshal(article)
-		result, e := dao.redis.Set(key, string(bytes), 86400*time.Second).Result()
-		if e != nil {
-			log.Println(e)
-		}
-		log.Println("redis result: ", result)
+		_, e = dao.redis.Set(key, string(bytes), 86400*time.Second).Result()
 
-		return article
+		if e != nil {
+			return nil, e.(BaseError)
+		}
+
+		return article, nil
 	} else {
 		var article models.Article
 
 		e := json.Unmarshal([]byte(s), &article)
 
-		log.Println(s, e)
+		if e != nil {
+			return nil, e.(BaseError)
+		}
 
-		return article
+		return article, nil
 	}
 }
 

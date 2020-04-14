@@ -2,6 +2,7 @@ package article_controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/hello/controllers"
 	"github.com/youngduc/go-blog/hello/models/dao"
 	"log"
 	"net/http"
@@ -14,7 +15,7 @@ func Index(ctx *gin.Context) {
 	s, b := ctx.GetQuery("page")
 	if b {
 		i, e := strconv.Atoi(s)
-		log.Println(e,i)
+		log.Println(e, i)
 		page = i
 	}
 	s, b = ctx.GetQuery("page_size")
@@ -28,7 +29,11 @@ func Index(ctx *gin.Context) {
 func Show(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
-	article := dao.Dao.ShowArticle(id)
+	article, e := dao.Dao.ShowArticle(id)
+	if e != nil {
+		controllers.Fail(ctx, e)
+		return
+	}
 
 	ctx.JSON(http.StatusOK, article)
 }
