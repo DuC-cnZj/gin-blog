@@ -8,11 +8,19 @@ import (
 	"github.com/youngduc/go-blog/hello/controllers/comment_controller"
 	"github.com/youngduc/go-blog/hello/models/dao"
 	"net/http"
+	"net/http/pprof"
 	"runtime"
 	"time"
 )
 
 func Init(router *gin.Engine) *gin.Engine {
+	//router.GET("/debug/pprof/profile", func(context *gin.Context) {
+	//	pprof.Profile(context.Writer, context.Request)
+	//})
+	//router.GET("/debug/pprof/cmdline", pprof.Cmdline)
+	//router.GET("/debug/pprof/profile", pprof.Profile)
+	//router.GET("/debug/pprof/symbol", pprof.Symbol)
+	//router.GET("/debug/pprof/trace", pprof.Trace)
 	//done
 	router.GET("/", Root)
 
