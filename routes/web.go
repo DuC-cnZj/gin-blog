@@ -8,7 +8,7 @@ import (
 	"github.com/youngduc/go-blog/hello/controllers/comment_controller"
 	"github.com/youngduc/go-blog/hello/models/dao"
 	"net/http"
-	"net/http/pprof"
+	//"net/http/pprof"
 	"runtime"
 	"time"
 )

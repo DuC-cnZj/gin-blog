@@ -10,6 +10,7 @@ import (
 	"github.com/youngduc/go-blog/hello/middleware"
 	"github.com/youngduc/go-blog/hello/models/dao"
 	"github.com/youngduc/go-blog/hello/routes"
+	"github.com/youngduc/go-blog/hello/services/oauth"
 	"log"
 	"net/http"
 	"os"
@@ -46,6 +47,7 @@ func main() {
 	// 初始化配置
 	config.Init()
 	dao.Init()
+	oauth.Init()
 
 	app := config.Config.App
 

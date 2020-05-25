@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v6"
 	"github.com/spf13/viper"
+	"golang.org/x/oauth2"
 	"log"
 	"sync"
 	"time"
@@ -24,10 +25,11 @@ type es struct {
 }
 
 type config struct {
-	App   *app
-	DB    *db
-	ES    es
-	Redis *redis.Options
+	App         *app
+	DB          *db
+	ES          es
+	Oauth       *oauth2.Config
+	Redis       *redis.Options
 	RedisPrefix string
 }
 
@@ -53,15 +55,33 @@ type multiMatch struct {
 func Init() *config {
 	once.Do(func() {
 		Config = &config{
-			DB:    InitDB(),
-			App:   InitApp(),
-			ES:    initES(),
-			Redis: InitRedis(),
+			DB:          InitDB(),
+			App:         InitApp(),
+			ES:          initES(),
+			Oauth:       initOauth(),
+			Redis:       InitRedis(),
 			RedisPrefix: viper.GetString("REDIS_PREFIX"),
 		}
 	})
 
 	return Config
+}
+
+func initOauth() *oauth2.Config {
+	redirectURL := viper.GetString("OAUTH_REDIRECT_URL")
+	clientID := viper.GetString("OAUTH_CLIENT_ID")
+	clientSecret := viper.GetString("OAUTH_CLIENT_SECRET")
+
+	return &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://github.com/login/oauth/authorize",
+			TokenURL: "https://github.com/login/oauth/access_token",
+		},
+		RedirectURL:  redirectURL,
+		Scopes:       []string{"user", "repo"},
+	}
 }
 
 func InitRedis() *redis.Options {
