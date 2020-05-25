@@ -33,7 +33,9 @@ func Show(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, article)
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": article,
+	})
 }
 
 func Search(ctx *gin.Context) {

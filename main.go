@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/youngduc/go-blog/hello/config"
@@ -54,6 +55,13 @@ func main() {
 	e := gin.Default()
 	gin.SetMode(config.Config.App.RunMode)
 	e.Use(middleware.DumpUrl())
+	e.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
+		AllowCredentials: false,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// 初始化路由
 	routers.Init(e)

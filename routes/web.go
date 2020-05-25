@@ -6,9 +6,9 @@ import (
 	"github.com/youngduc/go-blog/hello/controllers/auth_controller"
 	"github.com/youngduc/go-blog/hello/controllers/category_controller"
 	"github.com/youngduc/go-blog/hello/controllers/comment_controller"
+	"github.com/youngduc/go-blog/hello/middleware"
 	"github.com/youngduc/go-blog/hello/models/dao"
 	"net/http"
-	//"net/http/pprof"
 	"runtime"
 	"time"
 )
@@ -22,6 +22,9 @@ func Init(router *gin.Engine) *gin.Engine {
 	//router.GET("/debug/pprof/symbol", pprof.Symbol)
 	//router.GET("/debug/pprof/trace", pprof.Trace)
 	//done
+
+	router.LoadHTMLGlob("templates/*")
+
 	router.GET("/", Root)
 
 	//done
@@ -67,7 +70,7 @@ func Init(router *gin.Engine) *gin.Engine {
 
 	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
 
-	router.GET("/auth/me", auth_controller.Me)
+	router.POST("/me",  middleware.Auth(), auth_controller.Me)
 
 	return router
 }
@@ -84,19 +87,19 @@ func NavLinks(context *gin.Context) {
 
 func Root(context *gin.Context) {
 	context.String(http.StatusOK, `
-	# welcome! power by %s 
+	# welcome! power by %s
 	
-	      $$\                    $$\               $$\       $$\                     
-	      $$ |                   $  |              $$ |      $$ |                    
-	 $$$$$$$ |$$\   $$\  $$$$$$$\\_/$$$$$$$\       $$$$$$$\  $$ | $$$$$$\   $$$$$$\  
-	$$  __$$ |$$ |  $$ |$$  _____| $$  _____|      $$  __$$\ $$ |$$  __$$\ $$  __$$\ 
+	     $$\                    $$\               $$\       $$\
+	     $$ |                   $  |              $$ |      $$ |
+	$$$$$$$ |$$\   $$\  $$$$$$$\\_/$$$$$$$\       $$$$$$$\  $$ | $$$$$$\   $$$$$$\
+	$$  __$$ |$$ |  $$ |$$  _____| $$  _____|      $$  __$$\ $$ |$$  __$$\ $$  __$$\
 	$$ /  $$ |$$ |  $$ |$$ /       \$$$$$$\        $$ |  $$ |$$ |$$ /  $$ |$$ /  $$ |
 	$$ |  $$ |$$ |  $$ |$$ |        \____$$\       $$ |  $$ |$$ |$$ |  $$ |$$ |  $$ |
 	\$$$$$$$ |\$$$$$$  |\$$$$$$$\  $$$$$$$  |      $$$$$$$  |$$ |\$$$$$$  |\$$$$$$$ |
-	 \_______| \______/  \_______| \_______/       \_______/ \__| \______/  \____$$ |
-	                                                                       $$\   $$ |
-	                                                                       \$$$$$$  |
-	                                                                        \______/ 
+	\_______| \______/  \_______| \_______/       \_______/ \__| \______/  \____$$ |
+	                                                                      $$\   $$ |
+	                                                                      \$$$$$$  |
+	                                                                       \______/
 	created by duc@2018-%s.
 	`, runtime.Version(), time.Now().Format("2006"))
 }

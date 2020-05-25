@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser)  {
+func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser) *models.SocialiteUser  {
 	log.Println(githubUser)
 	var su models.SocialiteUser
 	identifier :=strconv.Itoa(githubUser.ID)
@@ -32,4 +32,15 @@ func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser)  {
 	}
 
 	dao.db.Save(&su)
+
+	return &su
+}
+
+func (dao *dao) FindSocialiteUser(id int) *models.SocialiteUser {
+	var su models.SocialiteUser
+	dao.db.
+		Where("id = ?", id).
+		Find(&su)
+
+	return &su
 }

@@ -124,6 +124,7 @@ func InitApp() *app {
 		PageSize:     viper.GetInt("PAGE_SIZE"),
 		JwtSecret:    viper.GetString("JWT_SECRET"),
 		HttpPort:     viper.GetInt("HTTP_PORT"),
+		FrontDomain:    viper.GetString("FRONT_DOMAIN"),
 		ReadTimeout:  time.Duration(viper.GetInt64("READ_TIMEOUT")),
 		WriteTimeout: time.Duration(viper.GetInt64("WRITE_TIMEOUT")),
 	}
@@ -179,6 +180,7 @@ type app struct {
 	RunMode   string
 	PageSize  int
 	JwtSecret string
+	FrontDomain string
 
 	HttpPort     int
 	ReadTimeout  time.Duration
