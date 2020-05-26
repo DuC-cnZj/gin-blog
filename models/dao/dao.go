@@ -15,9 +15,9 @@ import (
 var Dao *dao
 
 type dao struct {
-	db    *gorm.DB
-	es    *elastic.Client
-	redis *redis.Client
+	DB    *gorm.DB
+	ES    *elastic.Client
+	Redis *redis.Client
 }
 
 func Init() {
@@ -27,7 +27,7 @@ func Init() {
 
 	Dao = &dao{}
 
-	// es
+	// ES
 	errorlog := log.New(os.Stdout, "APP ", log.LstdFlags)
 
 	// Obtain a client. You can also provide your own HTTP client here.
@@ -51,19 +51,19 @@ func Init() {
 	}
 	fmt.Printf("Elasticsearch returned with code %d and version %s\n", code, info.Version.Number)
 
-	// Getting the es version number is quite common, so there's a shortcut
+	// Getting the ES version number is quite common, so there's a shortcut
 	esversion, err := client.ElasticsearchVersion(config.Config.ES.Host)
 	if err != nil {
 		// Handle error
 		panic(err)
 	}
 	fmt.Printf("Elasticsearch version %s\n", esversion)
-	Dao.es = client
+	Dao.ES = client
 
 	// DB
 	dbConfig := config.Config.DB
 
-	Dao.db, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
+	Dao.DB, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
 		dbConfig.Username,
 		dbConfig.Password,
 		dbConfig.Host,
@@ -77,14 +77,14 @@ func Init() {
 		return dbConfig.Prefix + defaultTableName
 	}
 
-	Dao.db.SingularTable(false)
-	Dao.db.LogMode(true)
-	Dao.db.DB().SetMaxIdleConns(10)
-	Dao.db.DB().SetMaxOpenConns(100)
+	Dao.DB.SingularTable(false)
+	Dao.DB.LogMode(true)
+	Dao.DB.DB().SetMaxIdleConns(10)
+	Dao.DB.DB().SetMaxOpenConns(100)
 
-	Dao.redis = redis.NewClient(config.Config.Redis)
+	Dao.Redis = redis.NewClient(config.Config.Redis)
 
-	_, err = Dao.redis.Ping().Result()
+	_, err = Dao.Redis.Ping().Result()
 
 	if err != nil {
 		log.Fatal(err)
@@ -93,16 +93,16 @@ func Init() {
 
 func (dao *dao) CloseDB() {
 	defer func() {
-		dao.db.Close()
+		dao.DB.Close()
 	}()
 }
 
 func (dao *dao) Ping() error {
 	var err error
-	running := dao.es.IsRunning()
+	running := dao.ES.IsRunning()
 	if running != true {
-		return errors.New("err es")
+		return errors.New("err ES")
 	}
-	err = dao.db.DB().Ping()
+	err = dao.DB.DB().Ping()
 	return err
 }

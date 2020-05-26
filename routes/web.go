@@ -25,25 +25,28 @@ func Init(router *gin.Engine) *gin.Engine {
 
 	router.LoadHTMLGlob("templates/*")
 
-	router.GET("/", Root)
-
 	//done
 	router.GET("/ping", Ping)
+
+	router.GET("/", Root)
 
 	//done
 	router.GET("/nav_links", NavLinks)
 
-	//done
-	router.GET("/categories", category_controller.Index)
+	router.GET("/login/github", auth_controller.RedirectToProvider)
 
-	//done
-	router.GET("/articles/:id/comments", comment_controller.Index)
+	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
+
+	router.POST("/me", middleware.Auth(), auth_controller.Me)
 
 	//done
 	router.GET("/articles/:id", article_controller.Show)
 
 	//done
 	router.GET("/articles", article_controller.Index)
+
+	//done
+	router.GET("/search_articles", article_controller.Search)
 
 	//done
 	router.GET("/home_articles", article_controller.Home)
@@ -54,23 +57,20 @@ func Init(router *gin.Engine) *gin.Engine {
 	//done
 	router.GET("/popular_articles", article_controller.Popular)
 
+	//todo
+	router.GET("/trending_articles", article_controller.Trending)
+
 	//done
 	router.GET("/top_articles", article_controller.Top)
 
 	//done
+	router.GET("/categories", category_controller.Index)
+
+	//done
+	router.GET("/articles/:id/comments", comment_controller.Index)
+
+	//done
 	router.POST("/articles/:id/comments", comment_controller.Store)
-
-	//done
-	router.GET("/trending_articles", article_controller.Trending)
-
-	//done
-	router.GET("/search_articles", article_controller.Search)
-
-	router.GET("/login/github", auth_controller.RedirectToProvider)
-
-	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
-
-	router.POST("/me",  middleware.Auth(), auth_controller.Me)
 
 	return router
 }

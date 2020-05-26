@@ -11,7 +11,7 @@ func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser) *models.Socialit
 	log.Println(githubUser)
 	var su models.SocialiteUser
 	identifier :=strconv.Itoa(githubUser.ID)
-	dao.db.
+	dao.DB.
 		Where("identity_type = ?", "github").
 		Where("identifier = ?", identifier).
 		Find(&su)
@@ -31,14 +31,14 @@ func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser) *models.Socialit
 		}
 	}
 
-	dao.db.Save(&su)
+	dao.DB.Save(&su)
 
 	return &su
 }
 
 func (dao *dao) FindSocialiteUser(id int) *models.SocialiteUser {
 	var su models.SocialiteUser
-	dao.db.
+	dao.DB.
 		Where("id = ?", id).
 		Find(&su)
 

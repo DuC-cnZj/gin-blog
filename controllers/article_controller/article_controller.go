@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models/dao"
+	"github.com/youngduc/go-blog/services"
 	"net/http"
 	"strconv"
 )
@@ -55,7 +56,9 @@ func Popular(ctx *gin.Context) {
 }
 
 func Trending(ctx *gin.Context) {
-
+	var trending services.Trending
+	get := trending.Get()
+	ctx.JSON(http.StatusOK, dao.Dao.GetArticleByIds(get))
 }
 
 func Top(ctx *gin.Context) {

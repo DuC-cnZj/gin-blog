@@ -26,7 +26,7 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 	var count int
 	offset := (page - 1) * perPage
 
-	dao.db.
+	dao.DB.
 		Preload("Author").
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
@@ -34,7 +34,7 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 		Limit(perPage).
 		Find(&articles)
 
-	dao.db.Table("articles").Where("display = ?", true).Count(&count)
+	dao.DB.Table("articles").Where("display = ?", true).Count(&count)
 
 	return map[string]interface{}{
 		"data": articles,
@@ -50,12 +50,21 @@ func cacheKey(key string) string {
 	return fmt.Sprintf("%s%s", config.Config.RedisPrefix, key)
 }
 
+func (dao *dao) GetArticleByIds(ids []int) []models.Article {
+	var articles []models.Article
+	dao.DB.Select("id,is_top,head_image,title,desc,display,created_at").
+		Where("id in (?)",ids).
+		Find(&articles)
+
+	return articles
+}
+
 func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
 	key := cacheKey("article:" + strconv.Itoa(id))
-	s, e := dao.redis.Get(key).Result()
+	s, e := dao.Redis.Get(key).Result()
 	if e == redis.Nil {
 		article := &models.Article{}
-		e := dao.db.
+		e := dao.DB.
 			Preload("Author").
 			Preload("Category").
 			Preload("Tags").
@@ -82,7 +91,7 @@ func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
 		}
 
 		bytes, _ := json.Marshal(article)
-		_, e = dao.redis.Set(key, string(bytes), 86400*time.Second).Result()
+		_, e = dao.Redis.Set(key, string(bytes), 86400*time.Second).Result()
 
 		if e != nil {
 			return nil, e.(BaseError)
@@ -104,7 +113,7 @@ func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
 
 func (dao *dao) HomeArticles() []models.Article {
 	var articles []models.Article
-	dao.db.
+	dao.DB.
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Order("id DESC").
@@ -116,7 +125,7 @@ func (dao *dao) HomeArticles() []models.Article {
 
 func (dao *dao) TopArticles() []*models.Article {
 	var articles []*models.Article
-	dao.db.
+	dao.DB.
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Where("top_at is not null").
@@ -131,7 +140,7 @@ func (dao *dao) TopArticles() []*models.Article {
 
 func (dao *dao) NewestArticles() []*models.Article {
 	var articles []*models.Article
-	dao.db.
+	dao.DB.
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Order("id DESC").
@@ -148,7 +157,7 @@ func (dao *dao) NewestArticles() []*models.Article {
 
 func (dao *dao) PopularArticles() []models.Article {
 	var articles []models.Article
-	dao.db.
+	dao.DB.
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Order("RAND()").
@@ -165,7 +174,7 @@ func (dao *dao) Search(q string) []*models.Article {
 	query := elastic.NewMultiMatchQuery(fmt.Sprintf(multiMatch.Query.MultiMatch.Query, q), multiMatch.Query.MultiMatch.Fields...).Analyzer(multiMatch.Query.MultiMatch.Analyzer)
 	log.Println(query)
 
-	result, e := dao.es.Search().
+	result, e := dao.ES.Search().
 		Index("article_index").
 		Highlight(highlight).
 		Query(query).
@@ -205,7 +214,7 @@ func (dao *dao) Search(q string) []*models.Article {
 	}
 
 	var articles []*models.Article
-	dao.db.
+	dao.DB.
 		Preload("Author").
 		Preload("Category").
 		Preload("Tags").

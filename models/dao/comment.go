@@ -2,13 +2,14 @@ package dao
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/models"
 	"strconv"
 )
 
 func (dao *dao) IndexComments(articleId int) []*models.Comment {
 	var comments []*models.Comment
-	dao.db.Where("article_id = ?", articleId).Find(&comments)
+	dao.DB.Where("article_id = ?", articleId).Find(&comments)
 
 	var UserComments = map[int]*models.Comment{}
 	var UserIds []int64
@@ -22,7 +23,7 @@ func (dao *dao) IndexComments(articleId int) []*models.Comment {
 		}
 	}
 
-	dao.db.Where("id in (?)", UserIds).Find(&users)
+	dao.DB.Where("id in (?)", UserIds).Find(&users)
 
 	for _, v := range users {
 		userMap[v.Id] = v
@@ -48,18 +49,25 @@ func (dao *dao) StoreComment(c *gin.Context) *models.Comment {
 	articleId, _ := strconv.Atoi(c.Query("article_id"))
 	commentId, _ := strconv.Atoi(c.PostForm("comment_id"))
 
+	userId, err := middleware.ParseUserId(c)
+	userType := "App\\SocialiteUser"
+
+	if err == middleware.UserIdNotFound {
+		userId = 0
+		userType = ""
+	}
+
 	comment := models.Comment{
 		Visitor:      c.ClientIP(),
 		Content:      content,
 		ArticleId:    int64(articleId),
 		CommentId:    int64(commentId),
-		UserableId:   0,
-		UserableType: "",
-		Author:       nil,
+		UserableId:   int64(userId),
+		UserableType: userType,
 	}
 
 	row := new(models.Comment)
-	dao.db.Create(&comment).Scan(&row)
+	dao.DB.Create(&comment).Scan(&row)
 
 	return row
 }
