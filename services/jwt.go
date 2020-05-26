@@ -3,7 +3,7 @@ package services
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/youngduc/go-blog/hello/config"
+	"github.com/youngduc/go-blog/config"
 	"time"
 )
 

@@ -2,7 +2,7 @@ package dao
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/youngduc/go-blog/hello/models"
+	"github.com/youngduc/go-blog/models"
 	"strconv"
 )
 

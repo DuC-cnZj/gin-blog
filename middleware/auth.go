@@ -3,8 +3,8 @@ package middleware
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/youngduc/go-blog/hello/config"
-	"github.com/youngduc/go-blog/hello/services"
+	"github.com/youngduc/go-blog/config"
+	"github.com/youngduc/go-blog/services"
 	"log"
 	"strings"
 )

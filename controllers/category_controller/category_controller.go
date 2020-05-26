@@ -2,7 +2,7 @@ package category_controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/youngduc/go-blog/hello/models/dao"
+	"github.com/youngduc/go-blog/models/dao"
 	"net/http"
 )
 

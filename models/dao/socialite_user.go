@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/youngduc/go-blog/hello/models"
+	"github.com/youngduc/go-blog/models"
 	"log"
 	"strconv"
 	"time"

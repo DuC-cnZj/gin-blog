@@ -2,12 +2,12 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/youngduc/go-blog/hello/controllers/article_controller"
-	"github.com/youngduc/go-blog/hello/controllers/auth_controller"
-	"github.com/youngduc/go-blog/hello/controllers/category_controller"
-	"github.com/youngduc/go-blog/hello/controllers/comment_controller"
-	"github.com/youngduc/go-blog/hello/middleware"
-	"github.com/youngduc/go-blog/hello/models/dao"
+	"github.com/youngduc/go-blog/controllers/article_controller"
+	"github.com/youngduc/go-blog/controllers/auth_controller"
+	"github.com/youngduc/go-blog/controllers/category_controller"
+	"github.com/youngduc/go-blog/controllers/comment_controller"
+	"github.com/youngduc/go-blog/middleware"
+	"github.com/youngduc/go-blog/models/dao"
 	"net/http"
 	"runtime"
 	"time"

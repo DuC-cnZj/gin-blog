@@ -1,4 +1,4 @@
-module github.com/youngduc/go-blog/hello
+module github.com/youngduc/go-blog
 
 go 1.14
 

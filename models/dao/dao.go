@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
 	"github.com/pkg/errors"
-	"github.com/youngduc/go-blog/hello/config"
+	"github.com/youngduc/go-blog/config"
 	"log"
 	"os"
 )
