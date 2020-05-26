@@ -6,7 +6,7 @@ require (
 	github.com/denisenkom/go-mssqldb v0.0.0-20200206145737-bbfc9a55622e // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fortytw2/leaktest v1.3.0 // indirect
-	github.com/gin-contrib/cors v1.3.1 // indirect
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.2
 	github.com/go-redis/redis/v7 v7.2.0
 	github.com/go-sql-driver/mysql v1.5.0
@@ -24,6 +24,7 @@ require (
 	github.com/olivere/elastic v6.2.30+incompatible
 	github.com/olivere/elastic/v6 v6.2.1
 	github.com/pkg/errors v0.9.1
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1 // indirect
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 // indirect

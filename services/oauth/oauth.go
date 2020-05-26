@@ -3,15 +3,16 @@ package oauth
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/models/dao"
 	"github.com/youngduc/go-blog/services"
 	"golang.org/x/oauth2"
-	"log"
-	"net/http"
-	"strings"
 )
 
 var oauthCnf *oauth2.Config
@@ -97,7 +98,7 @@ func HandleProviderCallback(code string, ctx *gin.Context) {
 	s, err := services.GenToken(socialiteUser.Id)
 	log.Println(err)
 	ctx.HTML(http.StatusOK, "oauth.tmpl", gin.H{
-		"token": s,
+		"token":  s,
 		"domain": config.Config.App.FrontDomain,
 	})
 }
