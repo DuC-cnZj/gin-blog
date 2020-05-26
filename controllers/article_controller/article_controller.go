@@ -5,6 +5,7 @@ import (
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models/dao"
 	"github.com/youngduc/go-blog/services"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -26,13 +27,16 @@ func Index(ctx *gin.Context) {
 }
 
 func Show(ctx *gin.Context) {
+	var trending services.Trending
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
 	article, e := dao.Dao.ShowArticle(id)
+
 	if e != nil {
 		controllers.Fail(ctx, e)
 		return
 	}
+	trending.Push(article.Id)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": article,
@@ -40,27 +44,40 @@ func Show(ctx *gin.Context) {
 }
 
 func Search(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, dao.Dao.Search(ctx.Query("q")))
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.Search(ctx.Query("q")),
+	})
 }
 
 func Home(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, dao.Dao.HomeArticles())
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.HomeArticles(),
+	})
 }
 
 func Newest(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, dao.Dao.NewestArticles())
+	ctx.JSON(http.StatusOK, gin.H{
+		"data" :dao.Dao.NewestArticles(),
+	})
 }
 
 func Popular(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, dao.Dao.PopularArticles())
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.PopularArticles(),
+	})
 }
 
 func Trending(ctx *gin.Context) {
 	var trending services.Trending
 	get := trending.Get()
-	ctx.JSON(http.StatusOK, dao.Dao.GetArticleByIds(get))
+	log.Println("Trending ids", get)
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.GetArticleByIds(get),
+	})
 }
 
 func Top(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, dao.Dao.TopArticles())
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.TopArticles(),
+	})
 }

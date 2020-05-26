@@ -22,7 +22,7 @@ type Article struct {
 
 	Comments []*Comment `json:"comments"`
 	//recommendArticles
-	Highlight Highlight
+	Highlight Highlight `json:"highlight"`
 }
 
 type Highlight struct {

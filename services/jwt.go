@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/youngduc/go-blog/config"
+	"github.com/youngduc/go-blog/utils"
 	"time"
 )
 
-type MyCustomClaims struct {
-	ID int `json:"id"`
-	jwt.StandardClaims
-}
+
 
 func GenToken(id int) (string, error)  {
-	c := &MyCustomClaims{
+	c := &utils.MyCustomClaims{
 		ID:             id,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute*10).Unix(),

@@ -43,6 +43,7 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 			CurrentPage: page,
 			PerPage:     perPage,
 		},
+		"links": map[string]string{},
 	}
 }
 
@@ -52,14 +53,14 @@ func cacheKey(key string) string {
 
 func (dao *dao) GetArticleByIds(ids []int) []models.Article {
 	var articles []models.Article
-	dao.DB.Select("id,is_top,head_image,title,desc,display,created_at").
+	dao.DB.Select("id,head_image,title,`desc`,display,created_at").
 		Where("id in (?)",ids).
 		Find(&articles)
 
 	return articles
 }
 
-func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
+func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 	key := cacheKey("article:" + strconv.Itoa(id))
 	s, e := dao.Redis.Get(key).Result()
 	if e == redis.Nil {
@@ -107,7 +108,7 @@ func (dao *dao) ShowArticle(id int) (interface{}, BaseError) {
 			return nil, e.(BaseError)
 		}
 
-		return article, nil
+		return &article, nil
 	}
 }
 
@@ -138,16 +139,17 @@ func (dao *dao) TopArticles() []*models.Article {
 	return articles
 }
 
-func (dao *dao) NewestArticles() []*models.Article {
-	var articles []*models.Article
+func (dao *dao) NewestArticles() []models.Article {
+	var articles []models.Article
 	dao.DB.
-		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
+		Select("author_id,id,top_at,head_image,title,`desc`,created_at").
 		Where("display = ?", true).
 		Order("id DESC").
 		Limit(13).
 		Find(&articles)
+	log.Println(articles)
 	for _, v := range articles {
-		if !v.TopAt.IsZero() {
+		if v.TopAt!=nil && !v.TopAt.IsZero() {
 			v.IsTop = true
 		}
 	}

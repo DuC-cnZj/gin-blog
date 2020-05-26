@@ -9,28 +9,32 @@ type Trending struct {
 }
 
 func (t *Trending) Get() []int {
-	var res = make([]int, 12)
+	var res = make([]int, 0)
 	all := t.AllKeys()
 	invisible := t.GetInvisibleIds()
 
 	var flag bool
 	for _, v := range all {
-		flag = true
+		flag = false
 		for _, v1 := range invisible {
-			if v==v1 {
-				flag = false
+			if v == v1 {
+				flag = true
 			}
 		}
 
-		if flag {
+		if !flag {
 			i, e := strconv.Atoi(v)
-			if e==nil {
+			if e == nil && i != 0 {
 				res = append(res, i)
 			}
 		}
 	}
 
-	return res[:12]
+	if len(res) > 12 {
+		return res[:12]
+	}
+
+	return res
 }
 
 func (t *Trending) Push(id int) {
@@ -63,6 +67,6 @@ func (*Trending) InvisibleKey() string {
 	return "invisible_articles"
 }
 func (t *Trending) AllKeys() []string {
-	return dao.Dao.Redis.ZRevRange(t.InvisibleKey(), 0, -1).Val()
+	return dao.Dao.Redis.ZRevRange(t.CacheKey(), 0, -1).Val()
 
 }

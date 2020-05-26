@@ -7,5 +7,7 @@ import (
 )
 
 func Index(c *gin.Context) {
-	c.JSON(http.StatusOK, dao.Dao.IndexCategories())
+	c.JSON(http.StatusOK, gin.H{
+		"data":dao.Dao.IndexCategories(),
+	})
 }
