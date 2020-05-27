@@ -25,52 +25,58 @@ func Init(router *gin.Engine) *gin.Engine {
 
 	router.LoadHTMLGlob("templates/*")
 
-	//done
-	router.GET("/ping", Ping)
+	use := router.Use(middleware.HandleFunc())
+	{
+		//done
+		use.GET("/ping", Ping)
 
-	router.GET("/", Root)
+		use.GET("/", Root)
 
-	//done
-	router.GET("/nav_links", NavLinks)
+		//done
+		use.GET("/nav_links", NavLinks)
 
-	router.GET("/login/github", auth_controller.RedirectToProvider)
+		use.GET("/login/github", auth_controller.RedirectToProvider)
 
-	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
+		use.GET("/login/github/callback", auth_controller.HandleProviderCallback)
 
-	router.POST("/me", middleware.Auth(), auth_controller.Me)
+		//done
+		use.GET("/articles/:id", article_controller.Show)
 
-	//done
-	router.GET("/articles/:id", article_controller.Show)
+		//done
+		use.GET("/articles", article_controller.Index)
 
-	//done
-	router.GET("/articles", article_controller.Index)
+		//done
+		use.GET("/search_articles", article_controller.Search)
 
-	//done
-	router.GET("/search_articles", article_controller.Search)
+		//done
+		use.GET("/home_articles", article_controller.Home)
 
-	//done
-	router.GET("/home_articles", article_controller.Home)
+		//done
+		use.GET("/newest_articles", article_controller.Newest)
 
-	//done
-	router.GET("/newest_articles", article_controller.Newest)
+		//done
+		use.GET("/popular_articles", article_controller.Popular)
 
-	//done
-	router.GET("/popular_articles", article_controller.Popular)
+		//todo
+		use.GET("/trending_articles", article_controller.Trending)
 
-	//todo
-	router.GET("/trending_articles", article_controller.Trending)
+		//done
+		use.GET("/top_articles", article_controller.Top)
 
-	//done
-	router.GET("/top_articles", article_controller.Top)
+		//done
+		use.GET("/categories", category_controller.Index)
 
-	//done
-	router.GET("/categories", category_controller.Index)
+		//done
+		use.GET("/articles/:id/comments", comment_controller.Index)
 
-	//done
-	router.GET("/articles/:id/comments", comment_controller.Index)
+		//done
+		use.POST("/articles/:id/comments", comment_controller.Store)
+	}
 
-	//done
-	router.POST("/articles/:id/comments", comment_controller.Store)
+	routes := router.Use(middleware.Auth(), middleware.HandleFunc())
+	{
+		routes.POST("/me", auth_controller.Me)
+	}
 
 	return router
 }
