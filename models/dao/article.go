@@ -101,7 +101,7 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 
 		return article, nil
 	} else {
-		log.Println(e)
+		//log.Println(e)
 		var article models.Article
 
 		e := json.Unmarshal([]byte(s), &article)
@@ -153,7 +153,6 @@ func (dao *dao) NewestArticles() []models.Article {
 		Order("id DESC").
 		Limit(13).
 		Find(&articles)
-	log.Println(articles)
 	for _, v := range articles {
 		if v.TopAt!=nil && !v.TopAt.IsZero() {
 			v.IsTop = true
@@ -180,7 +179,6 @@ func (dao *dao) Search(q string) []*models.Article {
 	multiMatch := es.MultiMatch
 	highlight := es.Highlight
 	query := elastic.NewMultiMatchQuery(fmt.Sprintf(multiMatch.Query.MultiMatch.Query, q), multiMatch.Query.MultiMatch.Fields...).Analyzer(multiMatch.Query.MultiMatch.Analyzer)
-	log.Println(query)
 
 	result, e := dao.ES.Search().
 		Index("article_index").

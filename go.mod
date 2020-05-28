@@ -15,7 +15,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.3.0 // indirect
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/gin-contrib/cors v1.3.1
-	github.com/gin-gonic/autotls v0.0.0-20200518075542-45033372a9ad // indirect
+	github.com/gin-gonic/autotls v0.0.0-20200518075542-45033372a9ad
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200420212212-258d9bec320e // indirect
 	github.com/go-playground/validator/v10 v10.3.0 // indirect

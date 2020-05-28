@@ -32,7 +32,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/youngduc/go-blog/config"
-	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/models/dao"
 	routers "github.com/youngduc/go-blog/routes"
 	"github.com/youngduc/go-blog/services/oauth"
@@ -86,12 +85,20 @@ func setUp() {
 	dao.Init()
 }
 
+type EmptyWriter struct {
+
+}
+
+func (*EmptyWriter) Write(p []byte) (n int, err error) {
+	return
+}
+
 func run() {
 	app := config.Config.App
 
+	gin.DefaultWriter = &EmptyWriter{}
 	e := gin.Default()
 	gin.SetMode(config.Config.App.RunMode)
-	e.Use(middleware.DumpUrl())
 	e.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},

@@ -10,23 +10,31 @@ import (
 	"github.com/youngduc/go-blog/models/dao"
 	"html/template"
 	"net/http"
+	"net/http/pprof"
 	"runtime"
 	"time"
 )
 
 func Init(router *gin.Engine) *gin.Engine {
-	//router.GET("/debug/pprof/profile", func(context *gin.Context) {
-	//	pprof.Profile(context.Writer, context.Request)
-	//})
-	//router.GET("/debug/pprof/cmdline", pprof.Cmdline)
-	//router.GET("/debug/pprof/profile", pprof.Profile)
-	//router.GET("/debug/pprof/symbol", pprof.Symbol)
-	//router.GET("/debug/pprof/trace", pprof.Trace)
+	//router.Use(middleware.DumpUrl(), middleware.HandleLog())
+
+	router.GET("/debug/pprof/profile", func(context *gin.Context) {
+		pprof.Profile(context.Writer, context.Request)
+	})
+	router.GET("/debug/pprof/cmdline", func(context *gin.Context) {
+		pprof.Cmdline(context.Writer, context.Request)
+	})
+	router.GET("/debug/pprof/symbol", func(context *gin.Context) {
+		pprof.Symbol(context.Writer, context.Request)
+	})
+	router.GET("/debug/pprof/trace", func(context *gin.Context) {
+		pprof.Trace(context.Writer, context.Request)
+	})
 	//done
 	parse, _ := template.New("oauth.tmpl").Parse(temp)
 	router.SetHTMLTemplate(parse)
 
-	use := router.Use(middleware.HandleLog())
+	use := router.Use()
 	{
 		//done
 		use.GET("/ping", Ping)

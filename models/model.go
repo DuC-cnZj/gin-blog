@@ -25,8 +25,8 @@ type JSONTime struct {
 }
 
 func (t *JSONTime) UnmarshalJSON(b []byte) error  {
-	parse, e := time.Parse("2006-01-02 15:04:05", strings.Trim( string(b), "\""))
-	fmt.Println(parse,e)
+	parse, _ := time.Parse("2006-01-02 15:04:05", strings.Trim( string(b), "\""))
+	//fmt.Println(parse,e)
 	t.Time = parse
 	return nil
 }
