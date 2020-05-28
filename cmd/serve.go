@@ -42,13 +42,13 @@ var configPath string
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
 	Use:   "serve",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "启动",
+//	Long: `A longer description that spans multiple lines and likely contains examples
+//and usage of using your command. For example:
+//
+//Cobra is a CLI library for Go that empowers applications.
+//This application is a tool to generate the needed files
+//to quickly create a Cobra application.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		log.Println(configPath)
 		setUp()
@@ -82,12 +82,10 @@ func setUp() {
 	// 初始化配置
 	config.Init()
 	oauth.Init()
-	log.Println("config inited")
+	dao.Init()
 }
 
 func run() {
-	dao.Init()
-
 	app := config.Config.App
 
 	e := gin.Default()

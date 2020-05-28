@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (dao *dao) SaveSocialiteUser(githubUser models.GithubUser) *models.SocialiteUser  {
+func (dao *dao) SaveSocialiteUser(githubUser *models.GithubUser) *models.SocialiteUser  {
 	log.Println(githubUser)
 	var su models.SocialiteUser
 	identifier :=strconv.Itoa(githubUser.ID)

@@ -8,6 +8,7 @@ import (
 	"github.com/youngduc/go-blog/controllers/comment_controller"
 	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/models/dao"
+	"html/template"
 	"net/http"
 	"runtime"
 	"time"
@@ -22,10 +23,10 @@ func Init(router *gin.Engine) *gin.Engine {
 	//router.GET("/debug/pprof/symbol", pprof.Symbol)
 	//router.GET("/debug/pprof/trace", pprof.Trace)
 	//done
+	parse, _ := template.New("oauth.tmpl").Parse(temp)
+	router.SetHTMLTemplate(parse)
 
-	router.LoadHTMLGlob("templates/*")
-
-	use := router.Use(middleware.HandleFunc())
+	use := router.Use(middleware.HandleLog())
 	{
 		//done
 		use.GET("/ping", Ping)
@@ -73,7 +74,7 @@ func Init(router *gin.Engine) *gin.Engine {
 		use.POST("/articles/:id/comments", comment_controller.Store)
 	}
 
-	routes := router.Use(middleware.Auth(), middleware.HandleFunc())
+	routes := router.Use(middleware.Auth(), middleware.HandleLog())
 	{
 		routes.POST("/me", auth_controller.Me)
 	}
@@ -123,3 +124,25 @@ func Ping(c *gin.Context) {
 		"status": "bad",
 	})
 }
+
+const temp  = `
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>oauth github</title>
+</head>
+<body>
+登陆中...
+<script>
+    window.onload = function () {
+        window.opener.postMessage("bearer {{ .token }}", "{{ .domain }}");
+        window.close();
+    }
+</script>
+</body>
+</html>
+`

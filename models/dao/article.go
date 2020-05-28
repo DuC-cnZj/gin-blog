@@ -30,6 +30,7 @@ func (dao *dao) IndexArticles(page, perPage int) map[string]interface{} {
 		Preload("Author").
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
+		Order("id desc").
 		Offset(offset).
 		Limit(perPage).
 		Find(&articles)
@@ -100,12 +101,16 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 
 		return article, nil
 	} else {
+		log.Println(e)
 		var article models.Article
 
 		e := json.Unmarshal([]byte(s), &article)
 
 		if e != nil {
-			return nil, e.(BaseError)
+			log.Println(e)
+			return nil, &ModelNotFound{
+				Code:404,
+			}
 		}
 
 		return &article, nil

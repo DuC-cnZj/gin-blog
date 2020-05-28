@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils"
@@ -19,6 +18,6 @@ func GenToken(id int) (string, error)  {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 	ss, err := token.SignedString([]byte(config.Config.App.JwtSecret))
-	fmt.Printf("%v %v", ss, err)
+
 	return ss, err
 }

@@ -6,31 +6,25 @@ import (
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/models/dao"
 	"io/ioutil"
-	"log"
 	"time"
 )
 
-func HandleFunc() gin.HandlerFunc {
+// todo 记录响应
+func HandleLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var  res []byte
-		var code int
-		var content string
-		var bodyBytes []byte
+		var (
+			res       []byte
+			bodyBytes []byte
+			code      int
+		)
+
 		if c.Request.Body != nil {
 			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
 		}
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		content = string(bodyBytes)
 
 		c.Next()
 
-		closer := c.Request.Response
-		log.Println("###########")
-		log.Println(closer)
-		if closer != nil {
-			code = closer.StatusCode
-			res, _ = ioutil.ReadAll(closer.Body)
-		}
 		value := c.Value("userId")
 		var utype = "App\\SocialiteUser"
 		if value == nil {
@@ -43,7 +37,7 @@ func HandleFunc() gin.HandlerFunc {
 			Method:     c.Request.Method,
 			StatusCode: code,
 			UserAgent:  c.Request.UserAgent(),
-			Content:    content,
+			Content:    string(bodyBytes),
 			Response:   string(res),
 			VisitedAt: &models.JSONTime{
 				Time: time.Now(),

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/models/dao"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -26,8 +25,6 @@ func recursiveReplies(comments []*models.Comment) interface{} {
 	for _, v := range comments {
 		m[v.Id] = v
 	}
-
-	log.Println("recursiveReplies", m)
 
 	for _, comment := range m {
 		if comment.CommentId == 0 {

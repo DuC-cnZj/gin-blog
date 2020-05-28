@@ -28,7 +28,7 @@ func Init() {
 	Dao = &dao{}
 
 	// ES
-	errorlog := log.New(os.Stdout, "APP ", log.LstdFlags)
+	errorlog := log.New(os.Stdout, "elastic search:", log.LstdFlags)
 
 	// Obtain a client. You can also provide your own HTTP client here.
 	client, err := elastic.NewClient(
@@ -78,7 +78,12 @@ func Init() {
 	}
 
 	Dao.DB.SingularTable(false)
-	Dao.DB.LogMode(true)
+	var logMode bool
+
+	if config.Config.App.RunMode != "release" {
+		logMode = true
+	}
+	Dao.DB.LogMode(logMode)
 	Dao.DB.DB().SetMaxIdleConns(10)
 	Dao.DB.DB().SetMaxOpenConns(100)
 

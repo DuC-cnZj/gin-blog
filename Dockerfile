@@ -11,4 +11,4 @@ FROM scratch
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /bin/app /bin/app
 USER appuser
-CMD [ "/bin/app" ]
+ENTRYPOINT [ "/bin/app" , "serve"]

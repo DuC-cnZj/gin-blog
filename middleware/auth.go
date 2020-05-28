@@ -5,14 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils"
-	"log"
 	"strings"
 )
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := strings.TrimSpace(c.GetHeader("Authorization")[6:])
-		log.Println(header)
 		token, err := jwt.ParseWithClaims(header, &utils.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Config.App.JwtSecret), nil
 		})
@@ -24,6 +22,7 @@ func Auth() gin.HandlerFunc {
 				return
 			}
 		}
+
 		c.AbortWithStatusJSON(401, gin.H{
 			"code": 401,
 			"msg":  "认证失败",
