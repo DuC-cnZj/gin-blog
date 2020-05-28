@@ -15,8 +15,28 @@ limitations under the License.
 */
 package main
 
-import "github.com/youngduc/go-blog/cmd"
+import (
+	"github.com/youngduc/go-blog/cmd"
+)
+//func timeMiddleware(next http.Handler) http.Handler {
+//	return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
+//
+//		// next handler
+//		next.ServeHTTP(wr, r)
+//
+//		log.Println(r.Response)
+//	})
+//}
 
 func main() {
+	//http.Handle("/post", timeMiddleware(H()))
+	//http.ListenAndServe(":8989", nil)
 	cmd.Execute()
 }
+
+//func H()  http.Handler{
+//	return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
+//		wr.WriteHeader(200)
+//		wr.Write([]byte("ok"))
+//	})
+//}
