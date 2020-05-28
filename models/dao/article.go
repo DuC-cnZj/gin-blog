@@ -120,7 +120,7 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 func (dao *dao) HomeArticles() []models.Article {
 	var articles []models.Article
 	dao.DB.
-		Preload("Tags").
+		Preload("Category").
 		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Order("id DESC").
