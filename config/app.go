@@ -120,6 +120,7 @@ func initES() es {
 
 func InitApp() *app {
 	return &app{
+		Domain:      viper.GetString("Domain"),
 		RunMode:      viper.GetString("RUN_MODE"),
 		PageSize:     viper.GetInt("PAGE_SIZE"),
 		JwtSecret:    viper.GetString("JWT_SECRET"),
@@ -177,6 +178,7 @@ func esSearchConfig() string {
 }
 
 type app struct {
+	Domain   string
 	RunMode   string
 	PageSize  int
 	JwtSecret string

@@ -18,6 +18,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/gin-gonic/autotls"
 	"log"
 	"net/http"
 	"os"
@@ -112,7 +113,11 @@ func run() {
 
 	ctx := context.Background()
 	go func() {
-		log.Println(s.ListenAndServe())
+		if config.Config.App.Domain != "" {
+			log.Fatal(autotls.Run(e, config.Config.App.Domain))
+		} else {
+			log.Println(s.ListenAndServe())
+		}
 	}()
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
