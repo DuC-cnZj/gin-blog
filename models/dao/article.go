@@ -121,7 +121,7 @@ func (dao *dao) HomeArticles() []models.Article {
 	var articles []models.Article
 	dao.DB.
 		Preload("Category").
-		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
+		Select([]string{"category_id", "author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
 		Where("display = ?", true).
 		Order("id DESC").
 		Limit(3).
