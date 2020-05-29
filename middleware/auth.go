@@ -10,7 +10,12 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header := strings.TrimSpace(c.GetHeader("Authorization")[6:])
+		h := c.GetHeader("Authorization")
+		var start int
+		if len(h) >= 6 {
+			start = 6
+		}
+		header := strings.TrimSpace(h[start:])
 		token, err := jwt.ParseWithClaims(header, &utils.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Config.App.JwtSecret), nil
 		})
