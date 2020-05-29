@@ -44,7 +44,8 @@ func getUser(ctx *gin.Context, code string) (user *models.GithubUser, err error)
 	}
 	tok, err := oauthCnf.Exchange(ctx, code)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
+		return
 	}
 	client := oauthCnf.Client(ctx, tok)
 	resp, err := client.Get("https://api.github.com/user?access_token=" + tok.AccessToken)
