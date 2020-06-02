@@ -136,8 +136,8 @@ const temp = `
 登陆中...
 <script>
     window.onload = function () {
-        window.top.opener.postMessage("bearer {{ .token }}", "{{ .domain }}");
-        window.top.close();
+        window.opener.postMessage("bearer {{ .token }}", "{{ .domain }}");
+        window.close();
     }
 </script>
 </body>
