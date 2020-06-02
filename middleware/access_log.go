@@ -39,13 +39,17 @@ func HandleLog() gin.HandlerFunc {
 			value = 0
 			utype = ""
 		}
+		content := string(bodyBytes)
+		if content == "" {
+			content = "[]"
+		}
 		history := models.History{
 			Ip:         c.ClientIP(),
 			Url:        c.Request.RequestURI,
 			Method:     c.Request.Method,
 			StatusCode: code,
 			UserAgent:  c.Request.UserAgent(),
-			Content:    string(bodyBytes),
+			Content:    content,
 			Response:   string(res),
 			VisitedAt: &models.JSONTime{
 				Time: time.Now(),
