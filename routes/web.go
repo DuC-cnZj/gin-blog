@@ -16,76 +16,66 @@ import (
 )
 
 func Init(router *gin.Engine) *gin.Engine {
-	use := router.Use(middleware.DumpUrl(), middleware.HandleLog())
+	router.Use(middleware.DumpUrl(), middleware.HandleLog())
+
+	parse, _ := template.New("oauth.tmpl").Parse(temp)
+
+	router.SetHTMLTemplate(parse)
+
+	router.GET("/debug/pprof/profile", func(context *gin.Context) {
+		pprof.Profile(context.Writer, context.Request)
+	})
+
+	router.GET("/debug/pprof/cmdline", func(context *gin.Context) {
+		pprof.Cmdline(context.Writer, context.Request)
+	})
+
+	router.GET("/debug/pprof/symbol", func(context *gin.Context) {
+		pprof.Symbol(context.Writer, context.Request)
+	})
+
+	router.GET("/debug/pprof/trace", func(context *gin.Context) {
+		pprof.Trace(context.Writer, context.Request)
+	})
+
+	router.GET("/ping", Ping)
+
+	router.GET("/", Root)
+
+	router.GET("/nav_links", NavLinks)
+
+	router.GET("/login/github", auth_controller.RedirectToProvider)
+
+	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
+
+	router.GET("/articles/:id", article_controller.Show)
+
+	router.GET("/articles", article_controller.Index)
+
+	router.GET("/search_articles", article_controller.Search)
+
+	router.GET("/home_articles", article_controller.Home)
+
+	router.GET("/newest_articles", article_controller.Newest)
+
+	router.GET("/popular_articles", article_controller.Popular)
+
+	router.GET("/trending_articles", article_controller.Trending)
+
+	router.GET("/top_articles", article_controller.Top)
+
+	router.GET("/categories", category_controller.Index)
+
+	router.GET("/articles/:id/comments", comment_controller.Index)
+
+	router.POST("/articles/:id/comments", comment_controller.Store)
+
+	group := router.Group("/", middleware.Auth())
+
+	routes := group.Use(middleware.Auth())
 	{
-		router.GET("/debug/pprof/profile", func(context *gin.Context) {
-			pprof.Profile(context.Writer, context.Request)
-		})
-		router.GET("/debug/pprof/cmdline", func(context *gin.Context) {
-			pprof.Cmdline(context.Writer, context.Request)
-		})
-		router.GET("/debug/pprof/symbol", func(context *gin.Context) {
-			pprof.Symbol(context.Writer, context.Request)
-		})
-		router.GET("/debug/pprof/trace", func(context *gin.Context) {
-			pprof.Trace(context.Writer, context.Request)
-		})
-		//done
-		parse, _ := template.New("oauth.tmpl").Parse(temp)
-		router.SetHTMLTemplate(parse)
-
-		//done
-		use.GET("/ping", Ping)
-
-		use.GET("/", Root)
-
-		//done
-		use.GET("/nav_links", NavLinks)
-
-		use.GET("/login/github", auth_controller.RedirectToProvider)
-
-		use.GET("/login/github/callback", auth_controller.HandleProviderCallback)
-
-		//done
-		use.GET("/articles/:id", article_controller.Show)
-
-		//done
-		use.GET("/articles", article_controller.Index)
-
-		//done
-		use.GET("/search_articles", article_controller.Search)
-
-		//done
-		use.GET("/home_articles", article_controller.Home)
-
-		//done
-		use.GET("/newest_articles", article_controller.Newest)
-
-		//done
-		use.GET("/popular_articles", article_controller.Popular)
-
-		//todo
-		use.GET("/trending_articles", article_controller.Trending)
-
-		//done
-		use.GET("/top_articles", article_controller.Top)
-
-		//done
-		use.GET("/categories", category_controller.Index)
-
-		//done
-		use.GET("/articles/:id/comments", comment_controller.Index)
-
-		//done
-		use.POST("/articles/:id/comments", comment_controller.Store)
-
-		group := router.Group("/", middleware.Auth())
-		routes := group.Use(middleware.Auth())
-		{
-			routes.POST("/me", auth_controller.Me)
-		}
+		routes.POST("/me", auth_controller.Me)
 	}
-
 
 	return router
 }
@@ -133,7 +123,7 @@ func Ping(c *gin.Context) {
 	})
 }
 
-const temp  = `
+const temp = `
 <!doctype html>
 <html lang="en">
 <head>
