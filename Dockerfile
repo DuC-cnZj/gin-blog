@@ -1,7 +1,8 @@
-FROM golang:1.14 AS builder
+FROM golang:1.14-alpine AS builder
 COPY . /app
 WORKDIR /app
-RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+  apk add --no-cache ca-certificates tzdata
 RUN go env -w GOPROXY=https://goproxy.cn,direct && \
  go mod download
 
@@ -11,5 +12,5 @@ FROM scratch
 COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /bin/app /bin/app
-USER appuser
+
 ENTRYPOINT [ "/bin/app" , "serve"]
