@@ -225,6 +225,7 @@ func (dao *dao) Search(q string) []*models.Article {
 		Preload("Category").
 		Preload("Tags").
 		Where("id in (?)", hitArticleIds).
+		Order("id DESC").
 		Where("display = ?", true).
 		Find(&articles)
 	for _, v := range articles {
