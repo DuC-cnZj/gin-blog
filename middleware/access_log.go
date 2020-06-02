@@ -30,7 +30,7 @@ func HandleLog() gin.HandlerFunc {
 		response := c.Value(controllers.ResponseValuesKey)
 		if response != nil {
 			response := response.(*controllers.ResponseValue)
-			code=  response.StatusCode
+			code = response.StatusCode
 			res, _ = json.Marshal(response.Response)
 		}
 		value := c.Value("userId")

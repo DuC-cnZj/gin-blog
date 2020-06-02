@@ -79,8 +79,8 @@ func initOauth() *oauth2.Config {
 			AuthURL:  "https://github.com/login/oauth/authorize",
 			TokenURL: "https://github.com/login/oauth/access_token",
 		},
-		RedirectURL:  redirectURL,
-		Scopes:       []string{"user", "repo"},
+		RedirectURL: redirectURL,
+		Scopes:      []string{"user", "repo"},
 	}
 }
 
@@ -120,12 +120,12 @@ func initES() es {
 
 func InitApp() *app {
 	return &app{
-		Domain:      viper.GetString("Domain"),
+		Domain:       viper.GetString("Domain"),
 		RunMode:      viper.GetString("RUN_MODE"),
 		PageSize:     viper.GetInt("PAGE_SIZE"),
 		JwtSecret:    viper.GetString("JWT_SECRET"),
 		HttpPort:     viper.GetInt("HTTP_PORT"),
-		FrontDomain:    viper.GetString("FRONT_DOMAIN"),
+		FrontDomain:  viper.GetString("FRONT_DOMAIN"),
 		ReadTimeout:  time.Duration(viper.GetInt64("READ_TIMEOUT")),
 		WriteTimeout: time.Duration(viper.GetInt64("WRITE_TIMEOUT")),
 	}
@@ -178,10 +178,10 @@ func esSearchConfig() string {
 }
 
 type app struct {
-	Domain   string
-	RunMode   string
-	PageSize  int
-	JwtSecret string
+	Domain      string
+	RunMode     string
+	PageSize    int
+	JwtSecret   string
 	FrontDomain string
 
 	HttpPort     int

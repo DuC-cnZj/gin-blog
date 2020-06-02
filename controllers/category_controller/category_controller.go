@@ -9,6 +9,6 @@ import (
 
 func Index(c *gin.Context) {
 	controllers.Success(c, http.StatusOK, gin.H{
-		"data":dao.Dao.IndexCategories(),
+		"data": dao.Dao.IndexCategories(),
 	})
 }

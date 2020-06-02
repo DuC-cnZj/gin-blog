@@ -7,25 +7,25 @@ import (
 	"time"
 )
 
-func (dao *dao) SaveSocialiteUser(githubUser *models.GithubUser) *models.SocialiteUser  {
+func (dao *dao) SaveSocialiteUser(githubUser *models.GithubUser) *models.SocialiteUser {
 	log.Println(githubUser)
 	var su models.SocialiteUser
-	identifier :=strconv.Itoa(githubUser.ID)
+	identifier := strconv.Itoa(githubUser.ID)
 	dao.DB.
 		Where("identity_type = ?", "github").
 		Where("identifier = ?", identifier).
 		Find(&su)
-	
+
 	if su.Id != 0 {
 		su.LastLoginAt = models.JSONTime{
 			Time: time.Now(),
 		}
-	} else  {
+	} else {
 		su.Identifier = identifier
 		su.IdentityType = "github"
-		su.Avatar =  &githubUser.AvatarURL
-		su.Url =  &githubUser.URL
-		su.Name =  &githubUser.Name
+		su.Avatar = &githubUser.AvatarURL
+		su.Url = &githubUser.URL
+		su.Name = &githubUser.Name
 		su.LastLoginAt = models.JSONTime{
 			Time: time.Now(),
 		}

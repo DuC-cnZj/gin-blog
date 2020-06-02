@@ -11,7 +11,7 @@ import (
 func (dao *dao) IndexComments(articleId int) []*models.Comment {
 	var comments []*models.Comment
 	dao.DB.Where("article_id = ?", articleId).Find(&comments)
-	log.Println("comments",comments)
+	log.Println("comments", comments)
 	if len(comments) == 0 {
 		return nil
 	}
@@ -26,7 +26,7 @@ func (dao *dao) IndexComments(articleId int) []*models.Comment {
 			UserComments[comment.Id] = comment
 			UserIds = append(UserIds, comment.UserableId)
 		} else {
-			comment.Author.Avatar=""
+			comment.Author.Avatar = ""
 			comment.Author.Name = comment.Visitor
 		}
 
@@ -49,8 +49,8 @@ func (dao *dao) IndexComments(articleId int) []*models.Comment {
 
 func (dao *dao) StoreComment(c *gin.Context) *models.Comment {
 	var reqInfo = struct {
-		Content string `json:"content"`
-		CommentId int `json:"comment_id"`
+		Content   string `json:"content"`
+		CommentId int    `json:"comment_id"`
 	}{}
 
 	_ = c.BindJSON(&reqInfo)

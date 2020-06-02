@@ -43,12 +43,12 @@ var configPath string
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "启动",
-//	Long: `A longer description that spans multiple lines and likely contains examples
-//and usage of using your command. For example:
-//
-//Cobra is a CLI library for Go that empowers applications.
-//This application is a tool to generate the needed files
-//to quickly create a Cobra application.`,
+	//	Long: `A longer description that spans multiple lines and likely contains examples
+	//and usage of using your command. For example:
+	//
+	//Cobra is a CLI library for Go that empowers applications.
+	//This application is a tool to generate the needed files
+	//to quickly create a Cobra application.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		log.Println(configPath)
 		setUp()
@@ -86,7 +86,6 @@ func setUp() {
 }
 
 type EmptyWriter struct {
-
 }
 
 func (*EmptyWriter) Write(p []byte) (n int, err error) {
@@ -118,7 +117,7 @@ func run() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	ctx := context.Background()
+
 	go func() {
 		if config.Config.App.Domain != "" {
 			log.Fatal(autotls.Run(e, config.Config.App.Domain))
@@ -126,6 +125,8 @@ func run() {
 			log.Println(s.ListenAndServe())
 		}
 	}()
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
 	<-c

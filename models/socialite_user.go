@@ -5,15 +5,14 @@ import "time"
 type SocialiteUser struct {
 	Model
 
-	UserId int `json:"user_id"`
-	Name *string `json:"name"`
-	Avatar *string `json:"avatar"`
-	Url *string `json:"url"`
-	IdentityType string `json:"identity_type"`
-	Identifier string `json:"identifier"`
-	LastLoginAt JSONTime `json:"last_login_at"`
+	UserId       int      `json:"user_id"`
+	Name         *string  `json:"name"`
+	Avatar       *string  `json:"avatar"`
+	Url          *string  `json:"url"`
+	IdentityType string   `json:"identity_type"`
+	Identifier   string   `json:"identifier"`
+	LastLoginAt  JSONTime `json:"last_login_at"`
 }
-
 
 type GithubUser struct {
 	Login                   string      `json:"login"`

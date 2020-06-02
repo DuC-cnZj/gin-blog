@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-const ResponseValuesKey  = "duc_response_values_key"
+const ResponseValuesKey = "duc_response_values_key"
 
-type ResponseValue struct{
+type ResponseValue struct {
 	StatusCode int
-	Response gin.H
+	Response   gin.H
 }
 
 func Fail(ctx *gin.Context, baseError dao.BaseError) {

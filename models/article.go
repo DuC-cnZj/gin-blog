@@ -26,11 +26,11 @@ type Article struct {
 }
 
 type Highlight struct {
-	Title string `json:"title"`
-	Tags string `json:"tags"`
+	Title    string `json:"title"`
+	Tags     string `json:"tags"`
 	Category string `json:"category"`
-	Content string `json:"content"`
-	Desc string `json:"desc"`
+	Content  string `json:"content"`
+	Desc     string `json:"desc"`
 }
 
 //$table->increments('id');

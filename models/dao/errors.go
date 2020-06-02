@@ -8,9 +8,9 @@ type BaseError interface {
 }
 
 type ModelNotFound struct {
-	Id int
+	Id    int
 	Model string
-	Code int
+	Code  int
 }
 
 func (e *ModelNotFound) Error() string {

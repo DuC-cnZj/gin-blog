@@ -55,7 +55,7 @@ func cacheKey(key string) string {
 func (dao *dao) GetArticleByIds(ids []int) []models.Article {
 	var articles []models.Article
 	dao.DB.Select("id,head_image,title,`desc`,display,created_at").
-		Where("id in (?)",ids).
+		Where("id in (?)", ids).
 		Find(&articles)
 
 	return articles
@@ -109,7 +109,7 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 		if e != nil {
 			log.Println(e)
 			return nil, &ModelNotFound{
-				Code:404,
+				Code: 404,
 			}
 		}
 
@@ -154,7 +154,7 @@ func (dao *dao) NewestArticles() []models.Article {
 		Limit(13).
 		Find(&articles)
 	for _, v := range articles {
-		if v.TopAt!=nil && !v.TopAt.IsZero() {
+		if v.TopAt != nil && !v.TopAt.IsZero() {
 			v.IsTop = true
 		}
 	}

@@ -8,18 +8,18 @@ import (
 	"log"
 )
 
-func RedirectToProvider(ctx *gin.Context)  {
-  oauth.Redirect(ctx)
+func RedirectToProvider(ctx *gin.Context) {
+	oauth.Redirect(ctx)
 }
 
-func HandleProviderCallback(ctx *gin.Context)  {
+func HandleProviderCallback(ctx *gin.Context) {
 	var code string
 	code = ctx.Query("code")
 	log.Println(code)
 	oauth.HandleProviderCallback(code, ctx)
 }
 
-func Me(ctx *gin.Context)  {
+func Me(ctx *gin.Context) {
 	id := ctx.Value("userId").(int)
 	controllers.Success(ctx, 200, gin.H{
 		"data": dao.Dao.FindSocialiteUser(id),

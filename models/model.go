@@ -9,23 +9,23 @@ import (
 )
 
 type Model struct {
-	Id int `gorm:"primary_key" json:"id"`
+	Id        int      `gorm:"primary_key" json:"id"`
 	CreatedAt JSONTime `json:"created_at"`
 	UpdatedAt JSONTime `json:"updated_at"`
 }
 
 type Paginator struct {
-	Total int `json:"total"`
+	Total       int `json:"total"`
 	CurrentPage int `json:"current_page"`
-	PerPage int `json:"per_page"`
+	PerPage     int `json:"per_page"`
 }
 
 type JSONTime struct {
 	time.Time
 }
 
-func (t *JSONTime) UnmarshalJSON(b []byte) error  {
-	parse, _ := time.Parse("2006-01-02 15:04:05", strings.Trim( string(b), "\""))
+func (t *JSONTime) UnmarshalJSON(b []byte) error {
+	parse, _ := time.Parse("2006-01-02 15:04:05", strings.Trim(string(b), "\""))
 	//fmt.Println(parse,e)
 	t.Time = parse
 	return nil

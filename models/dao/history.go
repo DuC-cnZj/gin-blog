@@ -7,4 +7,3 @@ import (
 func (dao *dao) CreateHistory(h *models.History) {
 	dao.DB.Create(h)
 }
-

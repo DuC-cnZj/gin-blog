@@ -52,19 +52,19 @@ func Search(ctx *gin.Context) {
 
 func Home(ctx *gin.Context) {
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data":dao.Dao.HomeArticles(),
+		"data": dao.Dao.HomeArticles(),
 	})
 }
 
 func Newest(ctx *gin.Context) {
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data" :dao.Dao.NewestArticles(),
+		"data": dao.Dao.NewestArticles(),
 	})
 }
 
 func Popular(ctx *gin.Context) {
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data":dao.Dao.PopularArticles(),
+		"data": dao.Dao.PopularArticles(),
 	})
 }
 
@@ -73,12 +73,12 @@ func Trending(ctx *gin.Context) {
 	get := trending.Get()
 	log.Println("Trending ids", get)
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data":dao.Dao.GetArticleByIds(get),
+		"data": dao.Dao.GetArticleByIds(get),
 	})
 }
 
 func Top(ctx *gin.Context) {
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data":dao.Dao.TopArticles(),
+		"data": dao.Dao.TopArticles(),
 	})
 }

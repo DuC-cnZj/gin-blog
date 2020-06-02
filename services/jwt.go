@@ -7,13 +7,11 @@ import (
 	"time"
 )
 
-
-
-func GenToken(id int) (string, error)  {
+func GenToken(id int) (string, error) {
 	c := &utils.MyCustomClaims{
-		ID:             id,
+		ID: id,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute*10).Unix(),
+			ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)

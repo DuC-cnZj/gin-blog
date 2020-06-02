@@ -8,6 +8,7 @@ import (
 	"log"
 	"strings"
 )
+
 var UserIdNotFound = errors.New("user id not found")
 
 type MyCustomClaims struct {
@@ -21,7 +22,7 @@ func ParseUserId(c *gin.Context) (int, error) {
 		return value.(int), nil
 	}
 	getHeader := c.GetHeader("Authorization")
-	if getHeader == ""{
+	if getHeader == "" {
 		return 0, UserIdNotFound
 	}
 	header := strings.TrimSpace(getHeader[6:])
@@ -37,4 +38,3 @@ func ParseUserId(c *gin.Context) (int, error) {
 
 	return 0, UserIdNotFound
 }
-
