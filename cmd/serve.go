@@ -88,6 +88,8 @@ func setUp() {
 	dao.Init()
 }
 
+const AppStartKey = "app_start_key"
+
 type EmptyWriter struct {
 }
 
@@ -106,7 +108,9 @@ func run() {
 	e := gin.Default()
 
 	if !IsFastMode() {
-		e.Use(middleware.DumpUrl(), middleware.HandleLog())
+		e.Use(func(c *gin.Context) {
+			c.Set(AppStartKey, time.Now())
+		}, middleware.DumpUrl(), middleware.HandleLog())
 	}
 
 	gin.SetMode(config.Config.App.RunMode)
@@ -115,6 +119,7 @@ func run() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "x-socket-id"},
 		AllowCredentials: false,
+		ExposeHeaders:    []string{"X-Request-Timing"},
 		MaxAge:           12 * time.Hour,
 	}))
 
