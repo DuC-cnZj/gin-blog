@@ -64,7 +64,7 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 
 	serveCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".env", "--config .env")
-	serveCmd.PersistentFlags().BoolVarP(&fastMode, "fast", "f", false, "--fast")
+	serveCmd.PersistentFlags().BoolVarP(&fastMode, "fast", "f", false, "禁用日志和控制台输出")
 }
 
 func setUp() {
