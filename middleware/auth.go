@@ -5,11 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils"
+	"log"
 	"strings"
 )
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log.Println(c.Request.RequestURI)
 		h := c.GetHeader("Authorization")
 		var start int
 		if len(h) >= 6 {

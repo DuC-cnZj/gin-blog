@@ -16,26 +16,24 @@ import (
 )
 
 func Init(router *gin.Engine) *gin.Engine {
-	//router.Use(middleware.DumpUrl(), middleware.HandleLog())
-
-	router.GET("/debug/pprof/profile", func(context *gin.Context) {
-		pprof.Profile(context.Writer, context.Request)
-	})
-	router.GET("/debug/pprof/cmdline", func(context *gin.Context) {
-		pprof.Cmdline(context.Writer, context.Request)
-	})
-	router.GET("/debug/pprof/symbol", func(context *gin.Context) {
-		pprof.Symbol(context.Writer, context.Request)
-	})
-	router.GET("/debug/pprof/trace", func(context *gin.Context) {
-		pprof.Trace(context.Writer, context.Request)
-	})
-	//done
-	parse, _ := template.New("oauth.tmpl").Parse(temp)
-	router.SetHTMLTemplate(parse)
-
-	use := router.Use()
+	use := router.Use(middleware.DumpUrl(), middleware.HandleLog())
 	{
+		router.GET("/debug/pprof/profile", func(context *gin.Context) {
+			pprof.Profile(context.Writer, context.Request)
+		})
+		router.GET("/debug/pprof/cmdline", func(context *gin.Context) {
+			pprof.Cmdline(context.Writer, context.Request)
+		})
+		router.GET("/debug/pprof/symbol", func(context *gin.Context) {
+			pprof.Symbol(context.Writer, context.Request)
+		})
+		router.GET("/debug/pprof/trace", func(context *gin.Context) {
+			pprof.Trace(context.Writer, context.Request)
+		})
+		//done
+		parse, _ := template.New("oauth.tmpl").Parse(temp)
+		router.SetHTMLTemplate(parse)
+
 		//done
 		use.GET("/ping", Ping)
 
@@ -80,12 +78,14 @@ func Init(router *gin.Engine) *gin.Engine {
 
 		//done
 		use.POST("/articles/:id/comments", comment_controller.Store)
+
+		group := router.Group("/", middleware.Auth())
+		routes := group.Use(middleware.Auth())
+		{
+			routes.POST("/me", auth_controller.Me)
+		}
 	}
 
-	routes := router.Use(middleware.Auth(), middleware.HandleLog())
-	{
-		routes.POST("/me", auth_controller.Me)
-	}
 
 	return router
 }

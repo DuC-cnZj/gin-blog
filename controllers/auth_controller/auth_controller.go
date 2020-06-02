@@ -2,6 +2,7 @@ package auth_controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models/dao"
 	"github.com/youngduc/go-blog/services/oauth"
 	"log"
@@ -20,7 +21,7 @@ func HandleProviderCallback(ctx *gin.Context)  {
 
 func Me(ctx *gin.Context)  {
 	id := ctx.Value("userId").(int)
-	ctx.JSON(200, gin.H{
+	controllers.Success(ctx, 200, gin.H{
 		"data": dao.Dao.FindSocialiteUser(id),
 	})
 }

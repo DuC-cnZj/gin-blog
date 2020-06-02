@@ -23,7 +23,8 @@ func Index(ctx *gin.Context) {
 		i, _ := strconv.Atoi(s)
 		perPage = i
 	}
-	ctx.JSON(http.StatusOK, dao.Dao.IndexArticles(page, perPage))
+
+	controllers.Success(ctx, 200, dao.Dao.IndexArticles(page, perPage))
 }
 
 func Show(ctx *gin.Context) {
@@ -38,31 +39,31 @@ func Show(ctx *gin.Context) {
 	}
 	trending.Push(article.Id)
 
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, 200, gin.H{
 		"data": article,
 	})
 }
 
 func Search(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"data":dao.Dao.Search(ctx.Query("q")),
+	controllers.Success(ctx, 200, gin.H{
+		"data": dao.Dao.Search(ctx.Query("q")),
 	})
 }
 
 func Home(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, http.StatusOK, gin.H{
 		"data":dao.Dao.HomeArticles(),
 	})
 }
 
 func Newest(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, http.StatusOK, gin.H{
 		"data" :dao.Dao.NewestArticles(),
 	})
 }
 
 func Popular(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, http.StatusOK, gin.H{
 		"data":dao.Dao.PopularArticles(),
 	})
 }
@@ -71,13 +72,13 @@ func Trending(ctx *gin.Context) {
 	var trending services.Trending
 	get := trending.Get()
 	log.Println("Trending ids", get)
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, http.StatusOK, gin.H{
 		"data":dao.Dao.GetArticleByIds(get),
 	})
 }
 
 func Top(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
+	controllers.Success(ctx, http.StatusOK, gin.H{
 		"data":dao.Dao.TopArticles(),
 	})
 }

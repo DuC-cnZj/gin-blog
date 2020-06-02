@@ -96,7 +96,7 @@ func (*EmptyWriter) Write(p []byte) (n int, err error) {
 func run() {
 	app := config.Config.App
 
-	gin.DefaultWriter = &EmptyWriter{}
+	//gin.DefaultWriter = &EmptyWriter{}
 	e := gin.Default()
 	gin.SetMode(config.Config.App.RunMode)
 	e.Use(cors.New(cors.Config{

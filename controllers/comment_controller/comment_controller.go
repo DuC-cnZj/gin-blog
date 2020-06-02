@@ -2,6 +2,7 @@ package comment_controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/models/dao"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 func Index(c *gin.Context) {
 	param := c.Param("id")
 	articleId, _ := strconv.Atoi(param)
-	c.JSON(http.StatusOK, gin.H{
+	controllers.Success(c, http.StatusOK, gin.H{
 		"data": recursiveReplies(dao.Dao.IndexComments(articleId)),
 	})
 }
@@ -41,7 +42,7 @@ func recursiveReplies(comments []*models.Comment) interface{} {
 }
 
 func Store(c *gin.Context) {
-	c.JSON(http.StatusCreated, gin.H{
+	controllers.Success(c, http.StatusCreated, gin.H{
 		"data": dao.Dao.StoreComment(c),
 	})
 }
