@@ -16,8 +16,6 @@ import (
 )
 
 func Init(router *gin.Engine) *gin.Engine {
-	router.Use(middleware.DumpUrl(), middleware.HandleLog())
-
 	parse, _ := template.New("oauth.tmpl").Parse(temp)
 
 	router.SetHTMLTemplate(parse)

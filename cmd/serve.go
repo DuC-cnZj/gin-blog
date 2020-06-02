@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/autotls"
+	"github.com/youngduc/go-blog/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -38,6 +39,7 @@ import (
 )
 
 var configPath string
+var fastMode bool
 
 // serveCmd represents the serve command
 var serveCmd = &cobra.Command{
@@ -62,6 +64,7 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 
 	serveCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".env", "--config .env")
+	serveCmd.PersistentFlags().BoolVarP(&fastMode, "fast", "f", false, "--fast")
 }
 
 func setUp() {
@@ -95,8 +98,17 @@ func (*EmptyWriter) Write(p []byte) (n int, err error) {
 func run() {
 	app := config.Config.App
 
-	//gin.DefaultWriter = &EmptyWriter{}
+	if IsFastMode() {
+		log.Println("fastMode")
+		gin.DefaultWriter = &EmptyWriter{}
+	}
+
 	e := gin.Default()
+
+	if !IsFastMode() {
+		e.Use(middleware.DumpUrl(), middleware.HandleLog())
+	}
+
 	gin.SetMode(config.Config.App.RunMode)
 	e.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
@@ -117,7 +129,6 @@ func run() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-
 	go func() {
 		if config.Config.App.Domain != "" {
 			log.Fatal(autotls.Run(e, config.Config.App.Domain))
@@ -136,4 +147,9 @@ func run() {
 	}
 	dao.Dao.CloseDB()
 	log.Println("平滑关闭")
+}
+
+// 急速模式，禁用日志和控制台输出
+func IsFastMode() bool {
+	return fastMode
 }
