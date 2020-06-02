@@ -2,6 +2,7 @@ package routers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/controllers/article_controller"
 	"github.com/youngduc/go-blog/controllers/auth_controller"
 	"github.com/youngduc/go-blog/controllers/category_controller"
@@ -80,7 +81,7 @@ func Init(router *gin.Engine) *gin.Engine {
 
 func NavLinks(context *gin.Context) {
 	type Links map[string]string
-	context.JSON(http.StatusOK, gin.H{
+	controllers.Success(context, http.StatusOK, gin.H{
 		"data": []Links{
 			{"title": "首页", "link": "/"},
 			{"title": "文章", "link": "/articles"},
@@ -110,13 +111,13 @@ func Root(context *gin.Context) {
 func Ping(c *gin.Context) {
 	ping := dao.Dao.Ping()
 	if ping == nil {
-		c.JSON(200, gin.H{
+		controllers.Success(c, 200, gin.H{
 			"status": "ok",
 		})
 		return
 	}
 
-	c.JSON(200, gin.H{
+	controllers.Success(c, 200, gin.H{
 		"status": "bad",
 	})
 }
