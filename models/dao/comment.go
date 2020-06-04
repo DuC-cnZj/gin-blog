@@ -10,7 +10,7 @@ import (
 
 func (dao *dao) IndexComments(articleId int) []*models.Comment {
 	var comments []*models.Comment
-	dao.DB.Where("article_id = ?", articleId).Find(&comments)
+	dao.DB.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
 	log.Println("comments", comments)
 	if len(comments) == 0 {
 		return nil
