@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -98,19 +99,38 @@ func (*EmptyWriter) Write(p []byte) (n int, err error) {
 }
 
 func run() {
+	baseCtx, cancel := context.WithCancel(context.Background())
 	app := config.Config.App
 
 	if IsFastMode() {
-		log.Println("fastMode")
 		gin.DefaultWriter = &EmptyWriter{}
+		log.Println("fastMode")
 	}
 
 	e := gin.Default()
 
+	go func(ctx context.Context) {
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("ctx done")
+				return
+			case <-time.After(2*time.Second):
+				log.Println("middleware.LogQueue: ",len(middleware.LogQueue), "Go runtime: ",runtime.NumGoroutine())
+			}
+		}
+	}(baseCtx)
+
 	if !IsFastMode() {
 		e.Use(func(c *gin.Context) {
 			c.Set(AppStartKey, time.Now())
-		}, middleware.DumpUrl(), middleware.HandleLog())
+		}, middleware.HandleLog())
+
+		for i := 0; i < 30; i++ {
+			go func(ctx context.Context) {
+				middleware.HandleQueue(ctx)
+			}(baseCtx)
+		}
 	}
 
 	gin.SetMode(config.Config.App.RunMode)
@@ -141,15 +161,18 @@ func run() {
 			log.Println(s.ListenAndServe())
 		}
 	}()
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelFunc()
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
 	<-c
+	ctx, cancelFunc := context.WithTimeout(baseCtx, 5*time.Second)
+	cancel()
+
+	defer cancelFunc()
 	err := s.Shutdown(ctx)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
+	<-middleware.EndChan
 	dao.Dao.CloseDB()
 	log.Println("平滑关闭")
 }

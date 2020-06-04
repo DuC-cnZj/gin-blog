@@ -97,6 +97,7 @@ func Init() {
 }
 
 func (dao *dao) CloseDB() {
+	log.Println("db close")
 	defer func() {
 		dao.DB.Close()
 	}()
