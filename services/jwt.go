@@ -2,8 +2,10 @@ package services
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils"
+	"strings"
 	"time"
 )
 
@@ -18,4 +20,24 @@ func GenToken(id int) (string, error) {
 	ss, err := token.SignedString([]byte(config.Config.App.JwtSecret))
 
 	return ss, err
+}
+
+func GetClaimFromCtx(c *gin.Context) (*utils.MyCustomClaims, bool) {
+	h := c.GetHeader("Authorization")
+	var start int
+	if len(h) >= 6 {
+		start = 6
+	}
+	header := strings.TrimSpace(h[start:])
+	token, err := jwt.ParseWithClaims(header, &utils.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Config.App.JwtSecret), nil
+	})
+
+	if err == nil && token.Valid {
+		if claims, ok := token.Claims.(*utils.MyCustomClaims); ok && token.Valid {
+			return claims, true
+		}
+	}
+
+	return nil, false
 }

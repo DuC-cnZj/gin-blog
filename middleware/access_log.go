@@ -8,6 +8,7 @@ import (
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/models/dao"
+	"github.com/youngduc/go-blog/services"
 	"io/ioutil"
 	"log"
 	"sync"
@@ -44,10 +45,15 @@ func HandleLog() gin.HandlerFunc {
 			res, _ = json.Marshal(response.Response)
 		}
 		value := c.Value("userId")
+
 		var utype = "App\\SocialiteUser"
 		if value == nil {
-			value = 0
-			utype = ""
+			if claims, b := services.GetClaimFromCtx(c); b {
+				value = claims.ID
+			} else {
+				value = 0
+				utype = ""
+			}
 		}
 		content := string(bodyBytes)
 		if content == "" {
@@ -90,7 +96,7 @@ func HandleQueue(ctx context.Context) {
 				//log.Println("handle one")
 			}
 		case <-ctx.Done():
-			if len(LogQueue)>0 {
+			if len(LogQueue) > 0 {
 				log.Println("还不能关闭")
 				break
 			}
