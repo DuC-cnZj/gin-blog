@@ -224,6 +224,7 @@ func (dao *dao) Search(q string) []*models.Article {
 		Preload("Author").
 		Preload("Category").
 		Preload("Tags").
+		Select([]string{"id", "author_id", "category_id", "desc", "title", "head_image", "created_at", "display"}).
 		Where("id in (?)", hitArticleIds).
 		Order("id DESC").
 		Where("display = ?", true).
