@@ -25,7 +25,6 @@ import (
 	"os"
 	"os/signal"
 	"path"
-	"runtime"
 	"syscall"
 	"time"
 
@@ -108,18 +107,6 @@ func run() {
 	}
 
 	e := gin.Default()
-
-	go func(ctx context.Context) {
-		for {
-			select {
-			case <-ctx.Done():
-				log.Println("ctx done")
-				return
-			case <-time.After(2*time.Second):
-				log.Println("middleware.LogQueue: ",len(middleware.LogQueue), "Go runtime: ",runtime.NumGoroutine())
-			}
-		}
-	}(baseCtx)
 
 	if !IsFastMode() {
 		e.Use(func(c *gin.Context) {
