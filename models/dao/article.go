@@ -224,20 +224,12 @@ func (dao *dao) Search(q string) []*models.Article {
 		Preload("Author").
 		Preload("Category").
 		Preload("Tags").
-		Select([]string{"id", "author_id", "category_id", "desc", "title", "head_image", "created_at", "display"}).
+		Select([]string{"id", "author_id", "category_id", "`desc`", "title", "head_image", "created_at", "display"}).
 		Where("id in (?)", hitArticleIds).
 		Order("id DESC").
 		Where("display = ?", true).
 		Find(&articles)
 	for _, v := range articles {
-		//var c content
-		//e := json.Unmarshal([]byte(v.Content), &c)
-		//
-		//if e != nil {
-		//	log.Fatal(e)
-		//}
-		//v.Content = c.Html
-		//v.ContentMd = c.Md
 		if data, ok := highIdMap[strconv.Itoa(v.Id)]; ok {
 			v.Highlight = data
 		}
