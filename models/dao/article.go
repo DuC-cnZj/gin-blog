@@ -230,14 +230,14 @@ func (dao *dao) Search(q string) []*models.Article {
 		Where("display = ?", true).
 		Find(&articles)
 	for _, v := range articles {
-		var c content
-		e := json.Unmarshal([]byte(v.Content), &c)
-
-		if e != nil {
-			log.Fatal(e)
-		}
-		v.Content = c.Html
-		v.ContentMd = c.Md
+		//var c content
+		//e := json.Unmarshal([]byte(v.Content), &c)
+		//
+		//if e != nil {
+		//	log.Fatal(e)
+		//}
+		//v.Content = c.Html
+		//v.ContentMd = c.Md
 		if data, ok := highIdMap[strconv.Itoa(v.Id)]; ok {
 			v.Highlight = data
 		}
