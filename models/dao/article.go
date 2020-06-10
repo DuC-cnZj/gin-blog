@@ -11,6 +11,7 @@ import (
 	"github.com/youngduc/go-blog/models"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -175,6 +176,17 @@ func (dao *dao) PopularArticles() []models.Article {
 }
 
 func (dao *dao) Search(q string) []*models.Article {
+	type HH struct {
+		Highlight models.Highlight
+		Hits      *elastic.SearchHit
+	}
+
+	var (
+		highIdMap     = map[string]HH{}
+		hitArticleIds []int
+		articles      []*models.Article
+	)
+
 	es := config.Config.ES
 	multiMatch := es.MultiMatch
 	highlight := es.Highlight
@@ -192,48 +204,52 @@ func (dao *dao) Search(q string) []*models.Article {
 		log.Println("err", e)
 	}
 
-	var highIdMap = map[string]models.Highlight{}
 	for _, v := range result.Hits.Hits {
-		var h models.Highlight
+		var h = HH{}
 		for field, highlight := range v.Highlight {
 			switch field {
 			case "title":
-				h.Title = strings.Join(highlight, "......")
+				h.Highlight.Title = strings.Join(highlight, "......")
 			case "desc":
-				h.Desc = strings.Join(highlight, "......")
+				h.Highlight.Desc = strings.Join(highlight, "......")
 			case "content":
-				h.Content = strings.Join(highlight, "......")
+				h.Highlight.Content = strings.Join(highlight, "......")
 			case "article_category.name":
-				h.Category = strings.Join(highlight, "......")
+				h.Highlight.Category = strings.Join(highlight, "......")
 			case "tags":
-				h.Tags = strings.Join(highlight, ", ")
+				h.Highlight.Tags = strings.Join(highlight, ", ")
 			}
 		}
+		h.Hits = v
 		highIdMap[v.Id] = h
 	}
-
-	var hitArticleIds []int
 
 	for _, v := range result.Hits.Hits {
 		i, _ := strconv.Atoi(v.Id)
 		hitArticleIds = append(hitArticleIds, i)
 	}
 
-	var articles []*models.Article
 	dao.DB.
 		Preload("Author").
 		Preload("Category").
 		Preload("Tags").
 		Select([]string{"id", "author_id", "category_id", "`desc`", "title", "head_image", "created_at", "display"}).
 		Where("id in (?)", hitArticleIds).
-		Order("id DESC").
 		Where("display = ?", true).
 		Find(&articles)
+
 	for _, v := range articles {
 		if data, ok := highIdMap[strconv.Itoa(v.Id)]; ok {
-			v.Highlight = data
+			v.Highlight = data.Highlight
 		}
 	}
+
+	sort.Slice(articles, func(i, j int) bool {
+		a := highIdMap[strconv.Itoa(articles[i].Id)].Hits.Score
+		b := highIdMap[strconv.Itoa(articles[j].Id)].Hits.Score
+
+		return *a > *b
+	})
 
 	return articles
 }
