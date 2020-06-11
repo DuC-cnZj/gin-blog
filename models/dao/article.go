@@ -88,7 +88,6 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 		}
 
 		article.Content = c.Html
-		article.ContentMd = c.Md
 		if article.TopAt != nil && !article.TopAt.IsZero() {
 			article.IsTop = true
 		}
@@ -102,7 +101,6 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 
 		return article, nil
 	} else {
-		//log.Println(e)
 		var article models.Article
 
 		e := json.Unmarshal([]byte(s), &article)
@@ -113,6 +111,8 @@ func (dao *dao) ShowArticle(id int) (*models.Article, BaseError) {
 				Code: 404,
 			}
 		}
+
+		article.ContentMd = ""
 
 		return &article, nil
 	}
