@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
@@ -136,7 +137,7 @@ func NavLinks(context *gin.Context) {
 }
 
 func Root(context *gin.Context) {
-	context.String(http.StatusOK, `
+	str := fmt.Sprintf(`
 	# welcome! power by %s
 	
 	     $$\                    $$\               $$\       $$\
@@ -152,6 +153,8 @@ func Root(context *gin.Context) {
 	                                                                       \______/
 	created by duc@2018-%s.
 	`, runtime.Version(), time.Now().Format("2006"))
+
+	controllers.SuccessString(context, http.StatusOK, str)
 }
 
 func Ping(c *gin.Context) {

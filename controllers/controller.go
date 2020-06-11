@@ -11,7 +11,7 @@ const ResponseValuesKey = "duc_response_values_key"
 
 type ResponseValue struct {
 	StatusCode int
-	Response   gin.H
+	Response   interface{}
 }
 
 func Fail(ctx *gin.Context, baseError dao.BaseError) {
@@ -40,4 +40,19 @@ func Success(ctx *gin.Context, code int, h gin.H) {
 	}
 
 	ctx.JSON(code, h)
+}
+
+func SuccessString(ctx *gin.Context, code int, str string) {
+	ctx.Set(ResponseValuesKey, &ResponseValue{
+		StatusCode: code,
+		Response:   str,
+	})
+
+	value, exists := ctx.Get("app_start_key")
+	if exists {
+		t := value.(time.Time)
+		ctx.Writer.Header().Set("X-Request-Timing", time.Since(t).String())
+	}
+
+	ctx.String(code, str)
 }
