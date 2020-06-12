@@ -101,8 +101,8 @@ func run() {
 	baseCtx, cancel := context.WithCancel(context.Background())
 	app := config.Config.App
 
-	log.Println("config.Config.App.Debug:", config.Config.App.Debug)
-	if !config.Config.App.Debug {
+	log.Println("config.Config.App.Debug:", app.Debug)
+	if !app.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -125,15 +125,7 @@ func run() {
 		}
 	}
 
-
-	e.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "x-socket-id"},
-		AllowCredentials: false,
-		ExposeHeaders:    []string{"X-Request-Timing"},
-		MaxAge:           12 * time.Hour,
-	}))
+	e.Use(corsMiddleware())
 
 	// 初始化路由
 	routers.Init(e)
@@ -147,9 +139,9 @@ func run() {
 	}
 
 	go func() {
-		if config.Config.App.Domain != "" {
-			log.Println("autotls running.... ", config.Config.App.Domain)
-			log.Fatal(autotls.Run(e, config.Config.App.Domain))
+		if app.Domain != "" {
+			log.Println("autotls running.... ", app.Domain)
+			log.Fatal(autotls.Run(e, app.Domain))
 		} else {
 			log.Println("gin running....")
 			log.Println(s.ListenAndServe())
@@ -169,6 +161,17 @@ func run() {
 	<-middleware.EndChan
 	dao.Dao.CloseDB()
 	log.Println("平滑关闭")
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "x-socket-id"},
+		AllowCredentials: false,
+		ExposeHeaders:    []string{"X-Request-Timing"},
+		MaxAge:           12 * time.Hour,
+	})
 }
 
 // 急速模式，禁用日志和控制台输出

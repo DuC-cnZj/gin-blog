@@ -94,6 +94,7 @@ func systemInfo(context *gin.Context) {
 	)
 	osDic := make(map[string]interface{}, 0)
 	osDic["goOs"] = runtime.GOOS
+	osDic["logQueue"] = len(middleware.LogQueue)
 	osDic["arch"] = runtime.GOARCH
 	osDic["mem"] = runtime.MemProfileRate
 	osDic["compiler"] = runtime.Compiler
