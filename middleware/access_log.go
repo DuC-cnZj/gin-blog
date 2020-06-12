@@ -38,6 +38,9 @@ func HandleLog() gin.HandlerFunc {
 
 		c.Next()
 
+		if !ShouldLog(c) {
+			return
+		}
 		response := c.Value(controllers.ResponseValuesKey)
 		if response != nil {
 			response := response.(*controllers.ResponseValue)
@@ -76,6 +79,17 @@ func HandleLog() gin.HandlerFunc {
 
 		go PushQueue(history)
 	}
+}
+
+func ShouldLog(c *gin.Context) bool {
+	recordMethods := []string{"POST", "GET", "PUT", "DELETE", "PATCH"}
+	for _, v := range recordMethods {
+		if c.Request.Method == v {
+			return true
+		}
+	}
+
+	return false
 }
 
 func PushQueue(history models.History) {
