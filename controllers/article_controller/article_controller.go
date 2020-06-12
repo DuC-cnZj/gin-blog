@@ -5,8 +5,8 @@ import (
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models/dao"
 	"github.com/youngduc/go-blog/services"
-	"log"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -71,9 +71,16 @@ func Popular(ctx *gin.Context) {
 func Trending(ctx *gin.Context) {
 	var trending services.Trending
 	get := trending.Get()
-	log.Println("Trending ids", get)
+	m := map[int]int{}
+	for k, v := range get {
+		m[v] = k
+	}
+	tendingArticles := dao.Dao.GetArticleByIds(get)
+	sort.Slice(tendingArticles, func(i, j int) bool {
+		return m[tendingArticles[i].Id] < m[tendingArticles[j].Id]
+	})
 	controllers.Success(ctx, http.StatusOK, gin.H{
-		"data": dao.Dao.GetArticleByIds(get),
+		"data": tendingArticles,
 	})
 }
 
