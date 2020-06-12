@@ -120,7 +120,10 @@ func run() {
 		}
 	}
 
-	gin.SetMode(config.Config.App.RunMode)
+	if !config.Config.App.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	e.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
@@ -143,8 +146,10 @@ func run() {
 
 	go func() {
 		if config.Config.App.Domain != "" {
+			log.Println("autotls running.... ", config.Config.App.Domain)
 			log.Fatal(autotls.Run(e, config.Config.App.Domain))
 		} else {
+			log.Println("gin running....")
 			log.Println(s.ListenAndServe())
 		}
 	}()

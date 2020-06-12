@@ -39,7 +39,7 @@ func HandleProviderCallback(code string, ctx *gin.Context) {
 }
 
 func getUser(ctx *gin.Context, code string) (user *models.GithubUser, err error) {
-	if config.Config.App.RunMode != "release" {
+	if config.Config.App.Debug {
 		return testData()
 	}
 	tok, err := oauthCnf.Exchange(ctx, code)

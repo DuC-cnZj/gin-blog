@@ -80,7 +80,7 @@ func Init() {
 	Dao.DB.SingularTable(false)
 	var logMode bool
 
-	if config.Config.App.RunMode != "release" {
+	if config.Config.App.Debug {
 		logMode = true
 	}
 	Dao.DB.LogMode(logMode)

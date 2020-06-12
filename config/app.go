@@ -120,6 +120,7 @@ func initES() es {
 
 func InitApp() *app {
 	return &app{
+		Debug:        viper.GetBool("DEBUG"),
 		Domain:       viper.GetString("Domain"),
 		RunMode:      viper.GetString("RUN_MODE"),
 		PageSize:     viper.GetInt("PAGE_SIZE"),
@@ -178,6 +179,7 @@ func esSearchConfig() string {
 }
 
 type app struct {
+	Debug       bool
 	Domain      string
 	RunMode     string
 	PageSize    int

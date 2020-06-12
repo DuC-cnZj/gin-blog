@@ -53,7 +53,9 @@ func main() {
 	app := config.Config.App
 
 	e := gin.Default()
-	gin.SetMode(config.Config.App.RunMode)
+	if !config.Config.App.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	e.Use(middleware.DumpUrl())
 	e.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
