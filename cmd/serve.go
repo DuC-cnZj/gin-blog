@@ -120,6 +120,7 @@ func run() {
 		}
 	}
 
+	log.Println("config.Config.App.Debug:", config.Config.App.Debug)
 	if !config.Config.App.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
