@@ -101,6 +101,11 @@ func run() {
 	baseCtx, cancel := context.WithCancel(context.Background())
 	app := config.Config.App
 
+	log.Println("config.Config.App.Debug:", config.Config.App.Debug)
+	if !config.Config.App.Debug {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	if IsFastMode() {
 		gin.DefaultWriter = &EmptyWriter{}
 		log.Println("fastMode")
@@ -120,10 +125,6 @@ func run() {
 		}
 	}
 
-	log.Println("config.Config.App.Debug:", config.Config.App.Debug)
-	if !config.Config.App.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
 
 	e.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
