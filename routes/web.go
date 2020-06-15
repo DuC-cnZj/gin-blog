@@ -123,7 +123,12 @@ func systemInfo(context *gin.Context) {
 	cpuDic["cpuNum"], _ = cpu.Counts(false)
 
 	controllers.Success(context, 200, gin.H{
-		"data": osDic,
+		"data": map[string]interface{}{
+			"os":  osDic,
+			"dis": diskDic,
+			"mem": memDic,
+			"cpu": cpuDic,
+		},
 	})
 }
 
