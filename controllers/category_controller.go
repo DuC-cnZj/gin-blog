@@ -11,7 +11,7 @@ type CategoryController struct {
 
 func (*CategoryController) Index(c *gin.Context) {
 	var categories []models.Category
-	dbClient.Find(&categories)
+	dbClient.Order("id DESC").Find(&categories)
 
 	Success(c, http.StatusOK, gin.H{
 		"data": categories,
