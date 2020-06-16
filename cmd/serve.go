@@ -8,6 +8,7 @@ import (
 	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/middleware"
+	"github.com/youngduc/go-blog/models"
 	"log"
 	"net/http"
 	"os"
@@ -70,6 +71,7 @@ func setUp() {
 	server.esConn = config.GetElastic()
 
 	controllers.Init()
+	models.Init()
 }
 
 func run() {

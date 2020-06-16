@@ -14,6 +14,13 @@ import (
 
 var db *gorm.DB
 
+func Init() {
+	if config.Conn.DB == nil {
+		log.Fatal("error init db conn")
+	}
+	db = config.Conn.DB
+}
+
 type Model struct {
 	Id        int      `gorm:"primary_key" json:"id"`
 	CreatedAt JSONTime `json:"created_at"`
