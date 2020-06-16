@@ -7,7 +7,7 @@ import (
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if claims, b := services.GetClaimFromCtx(c);b {
+		if claims, b := services.GetClaimFromCtx(c); b {
 			c.Set("userId", claims.ID)
 			c.Next()
 			return

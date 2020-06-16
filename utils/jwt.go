@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/config"
-	"log"
 	"strings"
 )
 
@@ -26,9 +25,8 @@ func ParseUserId(c *gin.Context) (int, error) {
 		return 0, UserIdNotFound
 	}
 	header := strings.TrimSpace(getHeader[6:])
-	log.Println(header)
 	token, err := jwt.ParseWithClaims(header, &MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Config.App.JwtSecret), nil
+		return []byte(config.Cfg.App.JwtSecret), nil
 	})
 	if err == nil && token.Valid {
 		if claims, ok := token.Claims.(*MyCustomClaims); ok && token.Valid {

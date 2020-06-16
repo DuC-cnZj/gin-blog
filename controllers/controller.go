@@ -2,38 +2,55 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/youngduc/go-blog/models/dao"
+	"github.com/go-redis/redis/v7"
+	"github.com/jinzhu/gorm"
+	"github.com/olivere/elastic/v6"
+	"github.com/youngduc/go-blog/config"
+	"github.com/youngduc/go-blog/utils/errors"
+	"log"
 	"net/http"
 	"time"
 )
 
-const ResponseValuesKey = "duc_response_values_key"
+var (
+	dbClient    *gorm.DB
+	esClient    *elastic.Client
+	redisClient *redis.Client
+)
+
+func Init() {
+	if config.Conn.DB == nil || config.Conn.EsClient == nil || config.Conn.RedisClient == nil {
+		log.Fatal("error init controller conn")
+	}
+	dbClient = config.Conn.DB
+	esClient = config.Conn.EsClient
+	redisClient = config.Conn.RedisClient
+}
 
 type ResponseValue struct {
 	StatusCode int
 	Response   interface{}
 }
 
-func Fail(ctx *gin.Context, baseError dao.BaseError) {
+func Fail(ctx *gin.Context, baseError errors.BaseError) {
 	code := http.StatusInternalServerError
 	if baseError.StatusCode() != 0 {
 		code = baseError.StatusCode()
 	}
 
-	ctx.JSON(code, gin.H{
+	ctx.AbortWithStatusJSON(code, gin.H{
 		"code":    code,
 		"message": baseError.Error(),
 	})
-	ctx.Abort()
 }
 
 func Success(ctx *gin.Context, code int, h gin.H) {
-	ctx.Set(ResponseValuesKey, &ResponseValue{
+	ctx.Set(config.ResponseValuesKey, &ResponseValue{
 		StatusCode: code,
 		Response:   h,
 	})
 
-	value, exists := ctx.Get("app_start_key")
+	value, exists := ctx.Get(config.AppStartKey)
 	if exists {
 		t := value.(time.Time)
 		ctx.Writer.Header().Set("X-Request-Timing", time.Since(t).String())
@@ -43,7 +60,7 @@ func Success(ctx *gin.Context, code int, h gin.H) {
 }
 
 func SuccessString(ctx *gin.Context, code int, str string) {
-	ctx.Set(ResponseValuesKey, &ResponseValue{
+	ctx.Set(config.ResponseValuesKey, &ResponseValue{
 		StatusCode: code,
 		Response:   str,
 	})

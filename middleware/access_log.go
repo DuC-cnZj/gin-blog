@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models"
-	"github.com/youngduc/go-blog/models/dao"
 	"github.com/youngduc/go-blog/services"
 	"io/ioutil"
 	"log"
@@ -41,7 +41,7 @@ func HandleLog() gin.HandlerFunc {
 		if !ShouldLog(c) {
 			return
 		}
-		response := c.Value(controllers.ResponseValuesKey)
+		response := c.Value(config.ResponseValuesKey)
 		if response != nil {
 			response := response.(*controllers.ResponseValue)
 			code = response.StatusCode
@@ -106,8 +106,7 @@ func HandleQueue(ctx context.Context) {
 		select {
 		case history, ok := <-LogQueue:
 			if ok {
-				dao.Dao.CreateHistory(&history)
-				//log.Println("handle one")
+				go history.Create()
 			}
 		case <-ctx.Done():
 			if len(LogQueue) > 0 {

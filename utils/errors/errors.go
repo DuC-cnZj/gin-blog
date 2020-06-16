@@ -1,4 +1,4 @@
-package dao
+package errors
 
 import "fmt"
 

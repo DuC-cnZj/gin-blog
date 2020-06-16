@@ -4,9 +4,22 @@ import (
 	"database/sql/driver"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+	"github.com/youngduc/go-blog/config"
+	"github.com/youngduc/go-blog/utils"
+	"log"
 	"strings"
 	"time"
 )
+
+var db *gorm.DB
+
+func Init() {
+	if config.Conn.DB == nil {
+		log.Fatal("error init db conn")
+	}
+	db = config.Conn.DB
+}
 
 type Model struct {
 	Id        int      `gorm:"primary_key" json:"id"`
@@ -54,4 +67,34 @@ func (t *JSONTime) Scan(v interface{}) error {
 		return nil
 	}
 	return fmt.Errorf("can not convert %v to timestamp", v)
+}
+
+func SetUp() {
+	var (
+		dbConfig = config.Cfg.DB
+		err      error
+	)
+
+	db, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		dbConfig.Username,
+		dbConfig.Password,
+		dbConfig.Host,
+		dbConfig.Database))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+		return dbConfig.Prefix + defaultTableName
+	}
+
+	if utils.IsDebug() {
+		db.LogMode(true)
+	}
+
+	db.SingularTable(false)
+
+	db.DB().SetMaxIdleConns(10)
+	db.DB().SetMaxOpenConns(100)
 }
