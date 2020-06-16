@@ -13,12 +13,21 @@ type CommentController struct {
 }
 
 func (comment *CommentController) Index(c *gin.Context) {
+	const (
+		SocialiteUser = "App\\SocialiteUser"
+		User          = "App\\User"
+	)
+
 	var (
-		UserComments = map[int]*models.Comment{}
-		userMap      = map[int]models.User{}
-		UserIds      []int64
-		users        []models.User
-		comments     []*models.Comment
+		comments       []*models.Comment
+		users          []models.User
+		SocialiteUsers []models.SocialiteUser
+		userMap        = map[string][]int64{
+			SocialiteUser: {},
+			User:          {},
+		}
+		keyByUserId          = map[int64]models.User{}
+		keyBySocialiteUserId = map[int64]models.SocialiteUser{}
 	)
 
 	param := c.Param("id")
@@ -27,9 +36,8 @@ func (comment *CommentController) Index(c *gin.Context) {
 	dbClient.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
 
 	for _, comment := range comments {
-		if comment.UserableId != 0 && comment.UserableType == "App\\User" {
-			UserComments[comment.Id] = comment
-			UserIds = append(UserIds, comment.UserableId)
+		if comment.UserableId != 0 {
+			userMap[comment.UserableType] = append(userMap[comment.UserableType], comment.UserableId)
 		} else {
 			comment.Author.Avatar = ""
 			comment.Author.Name = comment.Visitor
@@ -38,14 +46,35 @@ func (comment *CommentController) Index(c *gin.Context) {
 		comment.Body = comment.Content
 	}
 
-	dbClient.Where("id in (?)", UserIds).Find(&users)
-
-	for _, v := range users {
-		userMap[v.Id] = v
+	dbClient.Where("id in (?)", userMap[User]).Find(&users)
+	for _, user := range users {
+		keyByUserId[int64(user.Id)] = user
 	}
-	for _, comment := range UserComments {
-		if u, ok := userMap[int(comment.UserableId)]; ok {
-			comment.Author = u
+	dbClient.Where("id in (?)", userMap[SocialiteUser]).Find(&SocialiteUsers)
+	for _, socialiteUser := range SocialiteUsers {
+		keyBySocialiteUserId[int64(socialiteUser.Id)] = socialiteUser
+	}
+
+	for _, comment := range comments {
+		if comment.UserableId != 0 {
+			var ca = models.CommentAuthor{}
+			if comment.UserableType == SocialiteUser {
+				if user,ok := keyBySocialiteUserId[comment.UserableId];ok {
+					ca.Id = user.Id
+					ca.Avatar = user.Avatar
+					ca.Name = user.Name
+				}
+			}
+
+			if comment.UserableType == User {
+				if user,ok := keyByUserId[comment.UserableId];ok {
+					ca.Id = user.Id
+					ca.Avatar = user.Avatar
+					ca.Name = user.Name
+				}
+			}
+
+			comment.Author = ca
 		}
 	}
 

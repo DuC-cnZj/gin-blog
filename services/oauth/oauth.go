@@ -43,9 +43,9 @@ func HandleProviderCallback(code string, ctx *gin.Context) {
 	} else {
 		su.Identifier = identifier
 		su.IdentityType = "github"
-		su.Avatar = &githubUser.AvatarURL
-		su.Url = &githubUser.URL
-		su.Name = &githubUser.Name
+		su.Avatar = githubUser.AvatarURL
+		su.Url = githubUser.URL
+		su.Name = githubUser.Name
 		su.LastLoginAt = models.JSONTime{
 			Time: time.Now(),
 		}

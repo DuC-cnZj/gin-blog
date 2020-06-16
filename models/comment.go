@@ -1,5 +1,11 @@
 package models
 
+type CommentAuthor struct {
+	Id        int      `json:"id"`
+	Name      string   `json:"name"`
+	Avatar    string   `json:"avatar"`
+}
+
 type Comment struct {
 	Model
 
@@ -11,7 +17,7 @@ type Comment struct {
 	UserableId   int64  `json:"userable_id" gorm:"default:0"`
 	UserableType string `json:"userable_type" gorm:"default:''"`
 
-	Author User `json:"author"`
+	Author CommentAuthor `json:"author"`
 
 	Replies []*Comment `json:"replies"`
 	//Article *Article
