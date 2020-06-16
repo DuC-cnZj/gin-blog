@@ -25,6 +25,10 @@ func (comment *CommentController) Index(c *gin.Context) {
 
 	dbClient.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
 
+	if comments == nil {
+		comments = make([]*models.Comment, 0)
+	}
+
 	for _, comment := range comments {
 		if comment.UserableId != 0 && comment.UserableType == "App\\User" {
 			UserComments[comment.Id] = comment
