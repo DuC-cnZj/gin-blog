@@ -5,6 +5,7 @@ import (
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/utils"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -114,6 +115,10 @@ func (*CommentController) recursiveReplies(comments []*models.Comment) interface
 			}
 		}
 	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Id > res[j].Id
+	})
 
 	return res
 }
