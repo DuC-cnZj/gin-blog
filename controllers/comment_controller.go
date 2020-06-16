@@ -59,7 +59,7 @@ func (comment *CommentController) Index(c *gin.Context) {
 		if comment.UserableId != 0 {
 			var ca = models.CommentAuthor{}
 			if comment.UserableType == SocialiteUser {
-				if user,ok := keyBySocialiteUserId[comment.UserableId];ok {
+				if user, ok := keyBySocialiteUserId[comment.UserableId]; ok {
 					ca.Id = user.Id
 					ca.Avatar = user.Avatar
 					ca.Name = user.Name
@@ -67,7 +67,7 @@ func (comment *CommentController) Index(c *gin.Context) {
 			}
 
 			if comment.UserableType == User {
-				if user,ok := keyByUserId[comment.UserableId];ok {
+				if user, ok := keyByUserId[comment.UserableId]; ok {
 					ca.Id = user.Id
 					ca.Avatar = user.Avatar
 					ca.Name = user.Name
@@ -84,10 +84,14 @@ func (comment *CommentController) Index(c *gin.Context) {
 }
 
 func (*CommentController) Store(c *gin.Context) {
-	var reqInfo = struct {
-		Content   string `json:"content"`
-		CommentId int    `json:"comment_id"`
-	}{}
+	var (
+		reqInfo = struct {
+			Content   string `json:"content"`
+			CommentId int    `json:"comment_id"`
+		}{}
+		ca models.CommentAuthor
+		su models.SocialiteUser
+	)
 
 	_ = c.BindJSON(&reqInfo)
 	articleId, _ := strconv.Atoi(c.Param("id"))
@@ -100,6 +104,12 @@ func (*CommentController) Store(c *gin.Context) {
 	if err == utils.UserIdNotFound {
 		userId = 0
 		userType = ""
+	} else {
+		if result := dbClient.Where("id = ?", userId).Find(&su); result.Error == nil {
+			ca.Id = su.Id
+			ca.Name = su.Name
+			ca.Avatar = su.Avatar
+		}
 	}
 
 	comment := models.Comment{
@@ -114,6 +124,8 @@ func (*CommentController) Store(c *gin.Context) {
 	comment.Body = comment.Content
 
 	dbClient.Create(&comment)
+
+	comment.Author = ca
 
 	Success(c, http.StatusCreated, gin.H{
 		"data": comment,
