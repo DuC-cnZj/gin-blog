@@ -33,7 +33,7 @@ func GetDB() *gorm.DB {
 	var err error
 	dbConfig := Cfg.DB
 
-	Conn.DB, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
+	Conn.DB, err = gorm.Open(dbConfig.Conn, fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=True&loc=Local&charset=utf8mb4&collation=utf8mb4_unicode_ci",
 		dbConfig.Username,
 		dbConfig.Password,
 		dbConfig.Host,

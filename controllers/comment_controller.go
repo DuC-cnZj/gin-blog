@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/utils"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -85,16 +84,10 @@ func (*CommentController) Store(c *gin.Context) {
 
 	comment.Body = comment.Content
 
-	row := new(models.Comment)
-	create := dbClient.Create(&comment)
-	if create.Error != nil {
-		log.Println(create.Error)
-	}
-	log.Println(comment)
-	create.Scan(&row)
+	dbClient.Create(&comment)
 
 	Success(c, http.StatusCreated, gin.H{
-		"data": row,
+		"data": comment,
 	})
 }
 
