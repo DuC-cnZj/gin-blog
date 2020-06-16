@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
+	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/middleware"
 	"log"
 	"net/http"
@@ -67,6 +68,8 @@ func setUp() {
 	server.dbConn = config.GetDB()
 	server.redisConn = config.GetRedis()
 	server.esConn = config.GetElastic()
+
+	controllers.Init()
 }
 
 func run() {

@@ -2,17 +2,30 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v7"
+	"github.com/jinzhu/gorm"
+	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils/errors"
+	"log"
 	"net/http"
 	"time"
 )
 
 var (
-	redisClient = config.Conn.RedisClient
-	dbClient    = config.Conn.DB
-	esClient    = config.Conn.EsClient
+	dbClient    *gorm.DB
+	esClient    *elastic.Client
+	redisClient *redis.Client
 )
+
+func Init() {
+	if config.Conn.DB == nil || config.Conn.EsClient == nil || config.Conn.RedisClient == nil {
+		log.Fatal("error init controller conn")
+	}
+	dbClient = config.Conn.DB
+	esClient = config.Conn.EsClient
+	redisClient = config.Conn.RedisClient
+}
 
 type ResponseValue struct {
 	StatusCode int
