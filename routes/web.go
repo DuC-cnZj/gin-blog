@@ -6,13 +6,9 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/controllers"
-	"github.com/youngduc/go-blog/controllers/article_controller"
-	"github.com/youngduc/go-blog/controllers/auth_controller"
-	"github.com/youngduc/go-blog/controllers/category_controller"
-	"github.com/youngduc/go-blog/controllers/comment_controller"
 	"github.com/youngduc/go-blog/middleware"
-	"github.com/youngduc/go-blog/models/dao"
 	"html/template"
 	"net/http"
 	"net/http/pprof"
@@ -21,6 +17,8 @@ import (
 )
 
 func Init(router *gin.Engine) *gin.Engine {
+	router.Use(middleware.Cors())
+
 	parse, _ := template.New("oauth.tmpl").Parse(temp)
 
 	router.SetHTMLTemplate(parse)
@@ -49,37 +47,49 @@ func Init(router *gin.Engine) *gin.Engine {
 
 	router.GET("/nav_links", NavLinks)
 
-	router.GET("/login/github", auth_controller.RedirectToProvider)
+	authController := &controllers.AuthController{}
+	{
+		router.GET("/login/github", authController.RedirectToProvider)
 
-	router.GET("/login/github/callback", auth_controller.HandleProviderCallback)
+		router.GET("/login/github/callback", authController.HandleProviderCallback)
+	}
 
-	router.GET("/articles/:id", article_controller.Show)
+	articleController := &controllers.ArticleController{}
+	{
+		router.GET("/articles/:id", articleController.Show)
 
-	router.GET("/articles", article_controller.Index)
+		router.GET("/articles", articleController.Index)
 
-	router.GET("/search_articles", article_controller.Search)
+		router.GET("/search_articles", articleController.Search)
 
-	router.GET("/home_articles", article_controller.Home)
+		router.GET("/home_articles", articleController.Home)
 
-	router.GET("/newest_articles", article_controller.Newest)
+		router.GET("/newest_articles", articleController.Newest)
 
-	router.GET("/popular_articles", article_controller.Popular)
+		router.GET("/popular_articles", articleController.Popular)
 
-	router.GET("/trending_articles", article_controller.Trending)
+		router.GET("/trending_articles", articleController.Trending)
 
-	router.GET("/top_articles", article_controller.Top)
+		router.GET("/top_articles", articleController.Top)
+	}
 
-	router.GET("/categories", category_controller.Index)
+	categoryController := &controllers.CategoryController{}
+	{
+		router.GET("/categories", categoryController.Index)
+	}
 
-	router.GET("/articles/:id/comments", comment_controller.Index)
+	commentController := &controllers.CommentController{}
+	{
+		router.GET("/articles/:id/comments", commentController.Index)
 
-	router.POST("/articles/:id/comments", comment_controller.Store)
+		router.POST("/articles/:id/comments", commentController.Store)
+	}
 
 	group := router.Group("/", middleware.Auth())
 
 	routes := group.Use(middleware.Auth())
 	{
-		routes.POST("/me", auth_controller.Me)
+		routes.POST("/me", authController.Me)
 	}
 
 	return router
@@ -164,8 +174,15 @@ func Root(context *gin.Context) {
 }
 
 func Ping(c *gin.Context) {
-	ping := dao.Dao.Ping()
-	if ping == nil {
+	var (
+		dberr    error
+		rediserr error
+	)
+	running := config.Conn.EsClient.IsRunning()
+	dberr = config.Conn.DB.DB().Ping()
+	_, rediserr = config.Conn.RedisClient.Ping().Result()
+
+	if running && dberr == nil && rediserr == nil {
 		controllers.Success(c, 200, gin.H{
 			"status": "ok",
 		})
@@ -174,6 +191,11 @@ func Ping(c *gin.Context) {
 
 	controllers.Success(c, 200, gin.H{
 		"status": "bad",
+		"data": map[string]interface{}{
+			"redis": rediserr == nil,
+			"db":    dberr == nil,
+			"es":    running,
+		},
 	})
 }
 

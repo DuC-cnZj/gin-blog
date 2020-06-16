@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/youngduc/go-blog/models/dao"
+	"github.com/youngduc/go-blog/config"
 	"strconv"
 )
 
@@ -38,35 +38,35 @@ func (t *Trending) Get() []int {
 }
 
 func (t *Trending) Push(id int) {
-	dao.Dao.Redis.ZIncrBy(t.CacheKey(), 1, strconv.Itoa(id))
+	config.Conn.RedisClient.ZIncrBy(t.CacheKey(), 1, strconv.Itoa(id))
 }
 func (t *Trending) Remove(id int) {
-	dao.Dao.Redis.ZRem(t.CacheKey(), strconv.Itoa(id))
+	config.Conn.RedisClient.ZRem(t.CacheKey(), strconv.Itoa(id))
 }
 func (*Trending) CacheKey() string {
 	return "trending_articles"
 }
 func (t *Trending) Reset() {
-	dao.Dao.Redis.Del(t.CacheKey(), t.InvisibleKey())
+	config.Conn.RedisClient.Del(t.CacheKey(), t.InvisibleKey())
 }
 func (t *Trending) HasKey(id int) bool {
-	i := dao.Dao.Redis.ZRank(t.CacheKey(), strconv.Itoa(id)).Val()
+	i := config.Conn.RedisClient.ZRank(t.CacheKey(), strconv.Itoa(id)).Val()
 
 	return i != 0
 }
 func (t *Trending) GetInvisibleIds() []string {
-	return dao.Dao.Redis.SMembers(t.InvisibleKey()).Val()
+	return config.Conn.RedisClient.SMembers(t.InvisibleKey()).Val()
 }
 func (t *Trending) AddInvisible(id int) bool {
-	return dao.Dao.Redis.SAdd(t.InvisibleKey(), strconv.Itoa(id)).Val() != 0
+	return config.Conn.RedisClient.SAdd(t.InvisibleKey(), strconv.Itoa(id)).Val() != 0
 }
 func (t *Trending) RemoveInvisible(id int) bool {
-	return dao.Dao.Redis.SRem(t.InvisibleKey(), strconv.Itoa(id)).Val() != 0
+	return config.Conn.RedisClient.SRem(t.InvisibleKey(), strconv.Itoa(id)).Val() != 0
 }
 func (*Trending) InvisibleKey() string {
 	return "invisible_articles"
 }
 func (t *Trending) AllKeys() []string {
-	return dao.Dao.Redis.ZRevRange(t.CacheKey(), 0, -1).Val()
+	return config.Conn.RedisClient.ZRevRange(t.CacheKey(), 0, -1).Val()
 
 }

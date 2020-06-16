@@ -1,5 +1,7 @@
 package models
 
+import "github.com/youngduc/go-blog/config"
+
 type History struct {
 	Model
 
@@ -14,4 +16,8 @@ type History struct {
 	VisitedAt    *JSONTime `json:"visited_at"`
 	UserableId   int       `json:"userable_id"`
 	UserableType string    `json:"userable_type"`
+}
+
+func (h *History) Create() {
+	config.Conn.DB.Create(h)
 }

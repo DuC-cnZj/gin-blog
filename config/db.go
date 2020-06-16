@@ -2,7 +2,7 @@ package config
 
 import "github.com/spf13/viper"
 
-type db struct {
+type DB struct {
 	Conn     string
 	Username string
 	Password string
@@ -12,7 +12,7 @@ type db struct {
 	Prefix   string
 }
 
-func InitDB() *db {
+func InitDB() *DB {
 	conn := viper.GetString("DB_CONNECTION")
 	username := viper.GetString("DB_USERNAME")
 	database := viper.GetString("DB_DATABASE")
@@ -21,12 +21,11 @@ func InitDB() *db {
 	port := viper.GetInt("DB_PORT")
 	prefix := viper.GetString("DB_PREFIX")
 
-	// todo
 	return NewDB(conn, username, pwd, host, database, prefix, port)
 }
 
-func NewDB(conn, username, password, host, database, prefix string, port int) *db {
-	return &db{
+func NewDB(conn, username, password, host, database, prefix string, port int) *DB {
+	return &DB{
 		Conn:     conn,
 		Username: username,
 		Password: password,

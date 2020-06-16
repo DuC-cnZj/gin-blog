@@ -17,7 +17,7 @@ func GenToken(id int) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	ss, err := token.SignedString([]byte(config.Config.App.JwtSecret))
+	ss, err := token.SignedString([]byte(config.Cfg.App.JwtSecret))
 
 	return ss, err
 }
@@ -30,7 +30,7 @@ func GetClaimFromCtx(c *gin.Context) (*utils.MyCustomClaims, bool) {
 	}
 	header := strings.TrimSpace(h[start:])
 	token, err := jwt.ParseWithClaims(header, &utils.MyCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.Config.App.JwtSecret), nil
+		return []byte(config.Cfg.App.JwtSecret), nil
 	})
 
 	if err == nil && token.Valid {

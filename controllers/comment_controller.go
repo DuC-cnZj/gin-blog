@@ -1,25 +1,29 @@
-package dao
+package controllers
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/utils"
-	"log"
+	"net/http"
 	"strconv"
 )
 
-func (dao *dao) IndexComments(articleId int) []*models.Comment {
-	var comments []*models.Comment
-	dao.DB.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
-	log.Println("comments", comments)
-	if len(comments) == 0 {
-		return nil
-	}
+type CommentController struct {
+}
 
-	var UserComments = map[int]*models.Comment{}
-	var UserIds []int64
-	var users []models.User
-	userMap := map[int]models.User{}
+func (comment *CommentController) Index(c *gin.Context) {
+	var (
+		UserComments = map[int]*models.Comment{}
+		userMap      = map[int]models.User{}
+		UserIds      []int64
+		users        []models.User
+		comments     []*models.Comment
+	)
+
+	param := c.Param("id")
+	articleId, _ := strconv.Atoi(param)
+
+	dbClient.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
 
 	for _, comment := range comments {
 		if comment.UserableId != 0 && comment.UserableType == "App\\User" {
@@ -33,7 +37,7 @@ func (dao *dao) IndexComments(articleId int) []*models.Comment {
 		comment.Body = comment.Content
 	}
 
-	dao.DB.Where("id in (?)", UserIds).Find(&users)
+	dbClient.Where("id in (?)", UserIds).Find(&users)
 
 	for _, v := range users {
 		userMap[v.Id] = v
@@ -44,10 +48,12 @@ func (dao *dao) IndexComments(articleId int) []*models.Comment {
 		}
 	}
 
-	return comments
+	Success(c, http.StatusOK, gin.H{
+		"data": comment.recursiveReplies(comments),
+	})
 }
 
-func (dao *dao) StoreComment(c *gin.Context) *models.Comment {
+func (*CommentController) Store(c *gin.Context) {
 	var reqInfo = struct {
 		Content   string `json:"content"`
 		CommentId int    `json:"comment_id"`
@@ -78,7 +84,33 @@ func (dao *dao) StoreComment(c *gin.Context) *models.Comment {
 	comment.Body = comment.Content
 
 	row := new(models.Comment)
-	dao.DB.Create(&comment).Scan(&row)
+	dbClient.Create(&comment).Scan(&row)
 
-	return &comment
+	Success(c, http.StatusCreated, gin.H{
+		"data": comment,
+	})
+}
+
+func (*CommentController) recursiveReplies(comments []*models.Comment) interface{} {
+	if comments == nil {
+		return []*models.Comment{}
+	}
+	var res []*models.Comment
+	var m = make(map[int]*models.Comment)
+	for _, v := range comments {
+		m[v.Id] = v
+	}
+
+	for _, comment := range m {
+		if comment.CommentId == 0 {
+			res = append(res, comment)
+		} else {
+			i, ok := m[int(comment.CommentId)]
+			if ok {
+				i.Replies = append(i.Replies, comment)
+			}
+		}
+	}
+
+	return res
 }

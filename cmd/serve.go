@@ -1,24 +1,11 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/autotls"
+	"github.com/go-redis/redis/v7"
+	"github.com/jinzhu/gorm"
+	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/middleware"
 	"log"
 	"net/http"
@@ -28,29 +15,22 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/youngduc/go-blog/config"
-	"github.com/youngduc/go-blog/models/dao"
 	routers "github.com/youngduc/go-blog/routes"
-	"github.com/youngduc/go-blog/services/oauth"
 )
 
-var configPath string
-var fastMode bool
+var (
+	configPath string
+	fastMode   bool
+	server     = &Server{}
+)
 
-// serveCmd represents the serve command
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "启动",
-	//	Long: `A longer description that spans multiple lines and likely contains examples
-	//and usage of using your command. For example:
-	//
-	//Cobra is a CLI library for Go that empowers applications.
-	//This application is a tool to generate the needed files
-	//to quickly create a Cobra application.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		log.Println(configPath)
 		setUp()
@@ -82,13 +62,53 @@ func setUp() {
 		log.Fatal(err)
 		return
 	}
-	// 初始化配置
-	config.Init()
-	oauth.Init()
-	dao.Init()
+
+	server.Config = config.Init()
+	server.dbConn = config.GetDB()
+	server.redisConn = config.GetRedis()
+	server.esConn = config.GetElastic()
 }
 
-const AppStartKey = "app_start_key"
+func run() {
+	baseCtx, cancel := context.WithCancel(context.Background())
+
+	if server.IsProduction() {
+		server.SetReleaseMode()
+	}
+
+	if IsFastMode() {
+		server.EnableFastMode()
+	} else {
+		server.DisableFastMode(baseCtx)
+	}
+
+	server.Init()
+
+	go func() {
+		log.Printf("running in %d....\n", server.GetAppConfig().HttpPort)
+		log.Fatal(server.Run())
+	}()
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
+	<-c
+	ctx, cancelFunc := context.WithTimeout(baseCtx, 5*time.Second)
+	cancel()
+
+	defer cancelFunc()
+	err := server.httpServer.Shutdown(ctx)
+	if err != nil {
+		log.Println(err)
+	}
+	<-middleware.EndChan
+	server.Close()
+	log.Println("平滑关闭")
+}
+
+// 急速模式，禁用日志和控制台输出
+func IsFastMode() bool {
+	return fastMode
+}
 
 type EmptyWriter struct {
 }
@@ -97,84 +117,77 @@ func (*EmptyWriter) Write(p []byte) (n int, err error) {
 	return
 }
 
-func run() {
-	baseCtx, cancel := context.WithCancel(context.Background())
-	app := config.Config.App
+type Server struct {
+	Config      *config.Config
+	dbConn      *gorm.DB
+	redisConn   *redis.Client
+	esConn      *elastic.Client
+	httpServer  *http.Server
+	middlewares gin.HandlersChain
+}
 
-	log.Println("config.Config.App.Debug:", app.Debug)
-	if !app.Debug {
-		gin.SetMode(gin.ReleaseMode)
-	}
+func (s *Server) IsDebug() bool {
+	return s.Config.App.Debug
+}
 
-	if IsFastMode() {
-		gin.DefaultWriter = &EmptyWriter{}
-		log.Println("fastMode")
-	}
+func (s *Server) IsProduction() bool {
+	return !s.Config.App.Debug
+}
 
+func (s *Server) Init() {
 	e := gin.Default()
-
-	if !IsFastMode() {
-		e.Use(func(c *gin.Context) {
-			c.Set(AppStartKey, time.Now())
-		}, middleware.HandleLog())
-
-		for i := 0; i < 30; i++ {
-			go func(ctx context.Context) {
-				middleware.HandleQueue(ctx)
-			}(baseCtx)
-		}
-	}
-
-	e.Use(corsMiddleware())
-
-	// 初始化路由
+	e.Use(s.middlewares...)
 	routers.Init(e)
 
-	s := &http.Server{
-		Addr:           fmt.Sprintf(":%d", app.HttpPort),
+	server.httpServer = &http.Server{
+		Addr:           fmt.Sprintf(":%d", s.GetAppConfig().HttpPort),
 		Handler:        e,
-		ReadTimeout:    app.ReadTimeout * time.Second,
-		WriteTimeout:   app.WriteTimeout * time.Second,
+		ReadTimeout:    s.GetAppConfig().ReadTimeout * time.Second,
+		WriteTimeout:   s.GetAppConfig().WriteTimeout * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-
-	go func() {
-		if app.Domain != "" {
-			log.Println("autotls running.... ", app.Domain)
-			log.Fatal(autotls.Run(e, app.Domain))
-		} else {
-			log.Println("gin running....")
-			log.Println(s.ListenAndServe())
-		}
-	}()
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
-	<-c
-	ctx, cancelFunc := context.WithTimeout(baseCtx, 5*time.Second)
-	cancel()
-
-	defer cancelFunc()
-	err := s.Shutdown(ctx)
-	if err != nil {
-		log.Println(err)
-	}
-	<-middleware.EndChan
-	dao.Dao.CloseDB()
-	log.Println("平滑关闭")
 }
 
-func corsMiddleware() gin.HandlerFunc {
-	return cors.New(cors.Config{
-		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "x-socket-id"},
-		AllowCredentials: false,
-		ExposeHeaders:    []string{"X-Request-Timing"},
-		MaxAge:           12 * time.Hour,
-	})
+func (s *Server) Run() error {
+	return s.httpServer.ListenAndServe()
 }
 
-// 急速模式，禁用日志和控制台输出
-func IsFastMode() bool {
-	return fastMode
+func (s *Server) EnableFastMode() {
+	s.SetEmptyLogger()
+}
+
+func (s *Server) DisableFastMode(ctx context.Context) {
+
+	s.middlewares = append(s.middlewares, func(c *gin.Context) {
+		c.Set(config.AppStartKey, time.Now())
+	}, middleware.HandleLog())
+
+	go func(ctx context.Context) {
+		middleware.HandleQueue(ctx)
+	}(ctx)
+}
+
+func (s *Server) SetReleaseMode() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
+func (s *Server) SetEmptyLogger() {
+	gin.DefaultWriter = &EmptyWriter{}
+}
+
+func (s *Server) Close() {
+	s.dbConn.Close()
+	s.redisConn.Close()
+}
+
+func (s *Server) GetAppConfig() *config.App {
+	return s.Config.App
+}
+
+func (s *Server) GetDBConfig() *config.DB {
+	return s.Config.DB
+}
+
+func (s *Server) GetESConfig() *config.ES {
+	return s.Config.ES
 }

@@ -1,5 +1,10 @@
 package models
 
+type ArticleContent struct {
+	Md   string `json:"md"`
+	Html string `json:"html"`
+}
+
 type Article struct {
 	Model
 
@@ -25,6 +30,44 @@ type Article struct {
 	Highlight Highlight `json:"highlight"`
 }
 
+func (*Article) Paginate(page, perPage int) map[string]interface{} {
+	var articles []Article
+	var count int
+	offset := (page - 1) * perPage
+
+	db.
+		Preload("Author").
+		Select([]string{"author_id", "id", "top_at", "head_image", "title", "`desc`", "created_at"}).
+		Where("display = ?", true).
+		Order("id desc").
+		Offset(offset).
+		Limit(perPage).
+		Find(&articles)
+
+	db.Table("articles").Where("display = ?", true).Count(&count)
+
+	return map[string]interface{}{
+		"data": articles,
+		"meta": Paginator{
+			Total:       count,
+			CurrentPage: page,
+			PerPage:     perPage,
+		},
+		"links": map[string]string{},
+	}
+}
+
+func (article *Article) Find(id int) error {
+	return db.
+		Preload("Author").
+		Preload("Category").
+		Preload("Tags").
+		Where("id = ?", id).
+		Where("display = ?", true).
+		Find(article).
+		Error
+}
+
 type Highlight struct {
 	Title    string `json:"title"`
 	Tags     string `json:"tags"`
@@ -32,14 +75,3 @@ type Highlight struct {
 	Content  string `json:"content"`
 	Desc     string `json:"desc"`
 }
-
-//$table->increments('id');
-//$table->integer('author_id');
-//$table->integer('category_id');
-//$table->longtext('content')->nullable();
-//$table->string('desc');
-//$table->string('title');
-//$table->string('head_image');
-//$table->boolean('display')->default(true);
-//$table->timestamp('top_at')->nullable();
-//$table->timestamps();

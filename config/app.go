@@ -8,29 +8,39 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 	"log"
-	"sync"
 	"time"
 )
 
 var (
-	Config *config
-	once   sync.Once
+	Cfg *Config
 )
 
-type es struct {
+type Config struct {
+	App         *App
+	DB          *DB
+	ES          *ES
+	Oauth       *oauth2.Config
+	Redis       *redis.Options
+	RedisPrefix string
+}
+
+type ES struct {
 	SearchQuery string
 	Highlight   *elastic.Highlight
 	MultiMatch  multiMatch
 	Host        string
 }
 
-type config struct {
-	App         *app
-	DB          *db
-	ES          es
-	Oauth       *oauth2.Config
-	Redis       *redis.Options
-	RedisPrefix string
+type App struct {
+	Debug       bool
+	Domain      string
+	PageSize    int
+	JwtSecret   string
+	FrontDomain string
+
+	HttpPort     int
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
 }
 
 type multiMatch struct {
@@ -52,34 +62,28 @@ type multiMatch struct {
 	PostTags string `json:"post_tags"`
 }
 
-func Init() *config {
-	once.Do(func() {
-		Config = &config{
-			DB:          InitDB(),
-			App:         InitApp(),
-			ES:          initES(),
-			Oauth:       initOauth(),
-			Redis:       InitRedis(),
-			RedisPrefix: viper.GetString("REDIS_PREFIX"),
-		}
-	})
+func Init() *Config {
+	Cfg = &Config{
+		DB:          InitDB(),
+		App:         InitApp(),
+		ES:          initES(),
+		Oauth:       initOauth(),
+		Redis:       InitRedis(),
+		RedisPrefix: viper.GetString("REDIS_PREFIX"),
+	}
 
-	return Config
+	return Cfg
 }
 
 func initOauth() *oauth2.Config {
-	redirectURL := viper.GetString("OAUTH_REDIRECT_URL")
-	clientID := viper.GetString("OAUTH_CLIENT_ID")
-	clientSecret := viper.GetString("OAUTH_CLIENT_SECRET")
-
 	return &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+		ClientID:     viper.GetString("OAUTH_CLIENT_ID"),
+		ClientSecret: viper.GetString("OAUTH_CLIENT_SECRET"),
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  "https://github.com/login/oauth/authorize",
 			TokenURL: "https://github.com/login/oauth/access_token",
 		},
-		RedirectURL: redirectURL,
+		RedirectURL: viper.GetString("OAUTH_REDIRECT_URL"),
 		Scopes:      []string{"user", "repo"},
 	}
 }
@@ -91,14 +95,20 @@ func InitRedis() *redis.Options {
 	}
 }
 
-func initES() es {
-	var es es
-	es.Host = viper.GetString("ES_HOST")
-	log.Println("es hosts:", es.Host)
-	es.SearchQuery = esSearchConfig()
-	var multiMatch multiMatch
+func initES() *ES {
+	var (
+		es = ES{
+			SearchQuery: esSearchConfig(),
+			Highlight:   nil,
+			MultiMatch:  multiMatch{},
+			Host:        viper.GetString("ES_HOST"),
+		}
+		multiMatch multiMatch
+		Fields     []*elastic.HighlighterField
+	)
+
+	log.Println("ES hosts:", es.Host)
 	json.Unmarshal([]byte(es.SearchQuery), &multiMatch)
-	var Fields []*elastic.HighlighterField
 	for name, v := range multiMatch.Fields {
 		var f = elastic.HighlighterField{
 			Name: name,
@@ -109,17 +119,19 @@ func initES() es {
 			NumOfFragments(v.NumberOfFragments)
 		Fields = append(Fields, &f)
 	}
+
 	es.MultiMatch = multiMatch
 	es.Highlight = elastic.
 		NewHighlight().
 		Fields(Fields...).
 		PreTags(multiMatch.PreTags).
 		PostTags(multiMatch.PostTags)
-	return es
+
+	return &es
 }
 
-func InitApp() *app {
-	return &app{
+func InitApp() *App {
+	return &App{
 		Debug:        viper.GetBool("DEBUG"),
 		Domain:       viper.GetString("Domain"),
 		PageSize:     viper.GetInt("PAGE_SIZE"),
@@ -133,58 +145,45 @@ func InitApp() *app {
 
 func esSearchConfig() string {
 	return `
-{
-  "query" : {
-    "multi_match": {
-      "query": "%s",
-      "fields": ["content", "title^2", "desc^2", "tags^3", "article_category.name^4", "author.name^5"],
-      "analyzer": "ik_smart"
-    }
-  },
-  "fields":{
-    "title":{
-      "type":"plain",
-      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
-      "post_tags":"</span>"
-    },
-    "tags":{
-      "type":"plain",
-      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
-      "post_tags":"</span>"
-    },
-    "article_category.name":{
-      "type":"plain",
-      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
-      "post_tags":"</span>"
-    },
-    "content":{
-      "type":"plain",
-      "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
-      "post_tags":"</span>",
-      "fragment_size":10,
-      "number_of_fragments":2
-    },
-    "desc":{
-      "type":"plain",
-      "fragment_size":10,
-      "number_of_fragments":2
-    }
-  },
-  "pre_tags":"<span style='color:red'>",
-  "post_tags":"</span>"
-}
-
+	{
+	  "query" : {
+		"multi_match": {
+		  "query": "%s",
+		  "fields": ["content", "title^2", "desc^2", "tags^3", "article_category.name^4", "author.name^5"],
+		  "analyzer": "ik_smart"
+		}
+	  },
+	  "fields":{
+		"title":{
+		  "type":"plain",
+		  "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+		  "post_tags":"</span>"
+		},
+		"tags":{
+		  "type":"plain",
+		  "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+		  "post_tags":"</span>"
+		},
+		"article_category.name":{
+		  "type":"plain",
+		  "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+		  "post_tags":"</span>"
+		},
+		"content":{
+		  "type":"plain",
+		  "pre_tags":"<span style='background-color:#bfa;padding:1px;'>",
+		  "post_tags":"</span>",
+		  "fragment_size":10,
+		  "number_of_fragments":2
+		},
+		"desc":{
+		  "type":"plain",
+		  "fragment_size":10,
+		  "number_of_fragments":2
+		}
+	  },
+	  "pre_tags":"<span style='color:red'>",
+	  "post_tags":"</span>"
+	}
 `
-}
-
-type app struct {
-	Debug       bool
-	Domain      string
-	PageSize    int
-	JwtSecret   string
-	FrontDomain string
-
-	HttpPort     int
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
 }
