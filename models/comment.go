@@ -1,5 +1,10 @@
 package models
 
+const (
+	UserableTypeSocialiteUser = "App\\SocialiteUser"
+	UserableTypeUser          = "App\\User"
+)
+
 type CommentAuthor struct {
 	Id        int      `json:"id"`
 	Name      string   `json:"name"`

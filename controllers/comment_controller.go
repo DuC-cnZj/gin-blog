@@ -14,8 +14,8 @@ type CommentController struct {
 
 func (comment *CommentController) Index(c *gin.Context) {
 	const (
-		SocialiteUser = "App\\SocialiteUser"
-		User          = "App\\User"
+		SocialiteUser = models.UserableTypeSocialiteUser
+		User          = models.UserableTypeUser
 	)
 
 	var (
@@ -89,8 +89,9 @@ func (*CommentController) Store(c *gin.Context) {
 			Content   string `json:"content"`
 			CommentId int    `json:"comment_id"`
 		}{}
-		ca models.CommentAuthor
-		su models.SocialiteUser
+		ca       models.CommentAuthor
+		su       models.SocialiteUser
+		userType = models.UserableTypeSocialiteUser
 	)
 
 	_ = c.BindJSON(&reqInfo)
@@ -99,7 +100,6 @@ func (*CommentController) Store(c *gin.Context) {
 	commentId := reqInfo.CommentId
 
 	userId, err := utils.ParseUserId(c)
-	userType := "App\\SocialiteUser"
 
 	if err == utils.UserIdNotFound {
 		userId = 0
