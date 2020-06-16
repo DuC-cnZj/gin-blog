@@ -25,10 +25,6 @@ func (comment *CommentController) Index(c *gin.Context) {
 
 	dbClient.Where("article_id = ?", articleId).Order("id DESC").Find(&comments)
 
-	if comments == nil {
-		comments = make([]*models.Comment, 0)
-	}
-
 	for _, comment := range comments {
 		if comment.UserableId != 0 && comment.UserableType == "App\\User" {
 			UserComments[comment.Id] = comment
@@ -99,8 +95,11 @@ func (*CommentController) recursiveReplies(comments []*models.Comment) interface
 	if comments == nil {
 		return []*models.Comment{}
 	}
-	var res []*models.Comment
-	var m = make(map[int]*models.Comment)
+
+	var (
+		res = make([]*models.Comment, 0)
+		m   = make(map[int]*models.Comment)
+	)
 	for _, v := range comments {
 		m[v.Id] = v
 	}
