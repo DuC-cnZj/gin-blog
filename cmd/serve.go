@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"github.com/youngduc/go-blog/server"
 	"github.com/youngduc/go-blog/utils/interrupt"
 	"log"
+	"net/http"
 	"path"
 	"time"
 
@@ -94,7 +96,7 @@ func run() {
 	}()
 
 	log.Printf("running in %d....\n", srv.GetAppConfig().HttpPort)
-	if err := srv.Run(); err != nil {
+	if err := srv.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Println("server.Run, err: ", err)
 
 		return
