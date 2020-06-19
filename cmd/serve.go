@@ -91,7 +91,9 @@ func run() {
 
 		select {
 		case ch <- err:
+			log.Println("shutdown with err", err)
 		default:
+			log.Println("shutdown...")
 		}
 	}()
 
@@ -101,6 +103,8 @@ func run() {
 
 		return
 	}
+
+	srv.DoSthAfterServerDown()
 
 	select {
 	case e := <-ch:

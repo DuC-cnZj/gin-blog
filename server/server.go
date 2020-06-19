@@ -12,6 +12,7 @@ import (
 	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/models"
 	routers "github.com/youngduc/go-blog/routes"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -91,17 +92,15 @@ func (s *Server) SetEmptyLogger() {
 	gin.DefaultWriter = &EmptyWriter{}
 }
 
-func (s *Server) Close() {
-	s.DBConn.Close()
-	s.RedisConn.Close()
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.HttpServer.Shutdown(ctx)
 }
 
-func (s *Server) Shutdown(ctx context.Context) error {
-	err := s.HttpServer.Shutdown(ctx)
+func (s *Server) DoSthAfterServerDown() {
 	s.wg.Wait()
-	s.Close()
-
-	return err
+	s.DBConn.Close()
+	s.RedisConn.Close()
+	log.Println("DoSthAfterServerDown done!")
 }
 
 func (s *Server) GetAppConfig() *config.App {
