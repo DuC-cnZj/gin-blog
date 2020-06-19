@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"github.com/youngduc/go-blog/server"
 	"github.com/youngduc/go-blog/utils/interrupt"
 	"log"
-	"net/http"
 	"path"
 	"time"
 
@@ -82,39 +80,22 @@ func run() {
 
 	srv.Init()
 
-	ch := make(chan error)
-
 	go func() {
-		<-ctx.Done()
-
-		c, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancelFunc()
-
-		err := srv.Shutdown(c)
-
-		select {
-		case ch <- err:
-			log.Println("shutdown with err", err)
-		default:
-			log.Println("shutdown...")
-		}
+		log.Println(srv.Run())
 	}()
 
-	log.Printf("running in %d....\n", srv.GetAppConfig().HttpPort)
-	if err := srv.Run(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Println("server.Run, err: ", err)
+	<-ctx.Done()
 
-		return
+	c, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelFunc()
+
+	if err := srv.Shutdown(c); err != nil {
+		log.Println("异常退出, err: ", err)
 	}
 
-	srv.DoSthAfterServerDown()
+	srv.Close()
 
-	select {
-	case e := <-ch:
-		log.Println("异常退出, err: ", e)
-	default:
-		log.Println("graceful shutdown...")
-	}
+	log.Println("graceful shutdown...")
 }
 
 // 急速模式，禁用日志和控制台输出

@@ -110,11 +110,11 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.HttpServer.Shutdown(ctx)
 }
 
-func (s *Server) DoSthAfterServerDown() {
+func (s *Server) Close() {
 	s.wg.Wait()
 	s.DBConn.Close()
 	s.RedisConn.Close()
-	log.Println("DoSthAfterServerDown done!")
+	log.Println("server close!")
 }
 
 func (s *Server) GetAppConfig() *config.App {
