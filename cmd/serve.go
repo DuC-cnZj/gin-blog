@@ -9,12 +9,11 @@ import (
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/models"
+	"github.com/youngduc/go-blog/utils/interrupt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
 	"path"
-	"syscall"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -75,7 +74,8 @@ func setUp() {
 }
 
 func run() {
-	baseCtx, cancel := context.WithCancel(context.Background())
+	ctx, done := interrupt.Context()
+	defer done()
 
 	if server.IsProduction() {
 		server.SetReleaseMode()
@@ -84,30 +84,40 @@ func run() {
 	if IsFastMode() {
 		server.EnableFastMode()
 	} else {
-		server.DisableFastMode(baseCtx)
+		server.DisableFastMode(ctx)
 	}
 
 	server.Init()
 
+	ch := make(chan error)
+
 	go func() {
-		log.Printf("running in %d....\n", server.GetAppConfig().HttpPort)
-		log.Fatal(server.Run())
+		<-ctx.Done()
+
+		c, cancelFunc := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancelFunc()
+
+		err := server.Shutdown(c)
+
+		select {
+		case ch <- err:
+		default:
+		}
 	}()
 
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTERM)
-	<-c
-	ctx, cancelFunc := context.WithTimeout(baseCtx, 5*time.Second)
-	cancel()
+	log.Printf("running in %d....\n", server.GetAppConfig().HttpPort)
+	if err := server.Run(); err != nil {
+		log.Println("server.Run, err: ", err)
 
-	defer cancelFunc()
-	err := server.httpServer.Shutdown(ctx)
-	if err != nil {
-		log.Println(err)
+		return
 	}
-	<-middleware.EndChan
-	server.Close()
-	log.Println("平滑关闭")
+
+	select {
+	case e := <-ch:
+		log.Println("异常退出, err: ", e)
+	default:
+		log.Println("graceful shutdown...")
+	}
 }
 
 // 急速模式，禁用日志和控制台输出
@@ -129,6 +139,7 @@ type Server struct {
 	esConn      *elastic.Client
 	httpServer  *http.Server
 	middlewares gin.HandlersChain
+	wg          sync.WaitGroup
 }
 
 func (s *Server) IsDebug() bool {
@@ -162,12 +173,13 @@ func (s *Server) EnableFastMode() {
 }
 
 func (s *Server) DisableFastMode(ctx context.Context) {
-
 	s.middlewares = append(s.middlewares, func(c *gin.Context) {
 		c.Set(config.AppStartKey, time.Now())
 	}, middleware.HandleLog())
 
+	s.wg.Add(1)
 	go func(ctx context.Context) {
+		defer s.wg.Done()
 		middleware.HandleQueue(ctx)
 	}(ctx)
 }
@@ -183,6 +195,14 @@ func (s *Server) SetEmptyLogger() {
 func (s *Server) Close() {
 	s.dbConn.Close()
 	s.redisConn.Close()
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	err := s.httpServer.Shutdown(ctx)
+	s.wg.Wait()
+	s.Close()
+
+	return err
 }
 
 func (s *Server) GetAppConfig() *config.App {

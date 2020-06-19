@@ -19,7 +19,6 @@ const QueueSize = 100000
 const timeout = 1 * time.Second
 
 var LogQueue = make(chan models.History, QueueSize)
-var EndChan = make(chan struct{})
 var once = &sync.Once{}
 
 // todo 记录响应
@@ -95,6 +94,7 @@ func ShouldLog(c *gin.Context) bool {
 func PushQueue(history models.History) {
 	select {
 	case LogQueue <- history:
+		// todo 应该push到mq
 	case <-time.After(timeout):
 		log.Println("log queue full!!")
 	}
@@ -109,13 +109,8 @@ func HandleQueue(ctx context.Context) {
 				go history.Create()
 			}
 		case <-ctx.Done():
-			if len(LogQueue) > 0 {
-				log.Println("还不能关闭")
-				break
-			}
 			once.Do(func() {
 				close(LogQueue)
-				close(EndChan)
 				log.Println("log queue quit.", len(LogQueue))
 			})
 			return
