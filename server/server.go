@@ -18,6 +18,8 @@ import (
 	"time"
 )
 
+const DefaultQueueNum = 10
+
 type EmptyWriter struct {
 }
 
@@ -33,6 +35,8 @@ type Server struct {
 	HttpServer  *http.Server
 	Middlewares gin.HandlersChain
 	wg          sync.WaitGroup
+
+	QueueNum int
 }
 
 func NewServer() *Server {
@@ -77,10 +81,22 @@ func (s *Server) DisableFastMode(ctx context.Context) {
 		c.Set(config.AppStartKey, time.Now())
 	}, middleware.HandleLog())
 
-	s.wg.Add(1)
 	go func(ctx context.Context) {
-		defer s.wg.Done()
-		middleware.HandleQueue(ctx)
+		num := s.QueueNum
+		if num <= 0 {
+			num = DefaultQueueNum
+		}
+
+		s.wg.Add(num)
+
+		fn := func() {
+			defer s.wg.Done()
+			middleware.HandleQueue(ctx)
+		}
+
+		for i := 0; i < num; i++ {
+			fn()
+		}
 	}(ctx)
 }
 

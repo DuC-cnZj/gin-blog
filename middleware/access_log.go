@@ -106,7 +106,7 @@ func HandleQueue(ctx context.Context) {
 		select {
 		case history, ok := <-LogQueue:
 			if ok {
-				go history.Create()
+				history.Create()
 			}
 		case <-ctx.Done():
 			once.Do(func() {

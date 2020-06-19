@@ -17,6 +17,7 @@ import (
 
 var (
 	configPath string
+	queueNum   int
 	fastMode   bool
 	srv        *server.Server
 )
@@ -38,6 +39,7 @@ func init() {
 
 	serveCmd.PersistentFlags().StringVarP(&configPath, "config", "c", ".env", "--config .env")
 	serveCmd.PersistentFlags().BoolVarP(&fastMode, "fast", "f", false, "禁用日志和控制台输出")
+	serveCmd.PersistentFlags().IntVarP(&queueNum, "qn", "q", 10, "日志处理队列数")
 }
 
 func setUp() {
@@ -61,6 +63,7 @@ func setUp() {
 	srv.DBConn = config.GetDB()
 	srv.RedisConn = config.GetRedis()
 	srv.EsConn = config.GetElastic()
+	srv.QueueNum = queueNum
 }
 
 func run() {
