@@ -8,6 +8,7 @@ import (
 	"github.com/olivere/elastic/v6"
 	"log"
 	"os"
+	"time"
 )
 
 var Conn = struct {
@@ -56,6 +57,7 @@ func GetDB() *gorm.DB {
 	Conn.DB.LogMode(logMode)
 	Conn.DB.DB().SetMaxIdleConns(10)
 	Conn.DB.DB().SetMaxOpenConns(100)
+	Conn.DB.DB().SetConnMaxLifetime(time.Minute)
 
 	return Conn.DB
 }

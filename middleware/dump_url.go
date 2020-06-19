@@ -12,7 +12,6 @@ func DumpUrl() gin.HandlerFunc {
 		t := time.Now()
 		c.Next()
 		since := time.Since(t)
-		c.Writer.Header().Add("X-Timing", since.String())
 		log.Println(since.String())
 	}
 }
