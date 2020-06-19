@@ -88,13 +88,13 @@ func (s *Server) DisableFastMode(ctx context.Context) {
 
 	s.wg.Add(num)
 
-	fn := func() {
+	fn := func(name interface{}) {
 		defer s.wg.Done()
-		middleware.HandleQueue(ctx)
+		middleware.HandleQueue(name, ctx)
 	}
 
 	for i := 0; i < num; i++ {
-		go fn()
+		go fn(i)
 	}
 }
 

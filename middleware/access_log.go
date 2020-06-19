@@ -100,8 +100,8 @@ func PushQueue(history models.History) {
 	}
 }
 
-func HandleQueue(ctx context.Context) {
-	log.Println("init HandleQueue")
+func HandleQueue(name interface{}, ctx context.Context) {
+	log.Println("init HandleQueue name: ", name)
 	for {
 		select {
 		case history, ok := <-LogQueue:
@@ -111,8 +111,10 @@ func HandleQueue(ctx context.Context) {
 		case <-ctx.Done():
 			once.Do(func() {
 				close(LogQueue)
-				log.Println("log queue quit.", len(LogQueue))
+				log.Println("log queue closed.", len(LogQueue))
 			})
+			log.Println("log queue exit name: ", name)
+
 			return
 		}
 	}
