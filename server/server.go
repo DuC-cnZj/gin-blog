@@ -81,23 +81,21 @@ func (s *Server) DisableFastMode(ctx context.Context) {
 		c.Set(config.AppStartKey, time.Now())
 	}, middleware.HandleLog())
 
-	go func(ctx context.Context) {
-		num := s.QueueNum
-		if num <= 0 {
-			num = DefaultQueueNum
-		}
+	num := s.QueueNum
+	if num <= 0 {
+		num = DefaultQueueNum
+	}
 
-		s.wg.Add(num)
+	s.wg.Add(num)
 
-		fn := func() {
-			defer s.wg.Done()
-			middleware.HandleQueue(ctx)
-		}
+	fn := func() {
+		defer s.wg.Done()
+		middleware.HandleQueue(ctx)
+	}
 
-		for i := 0; i < num; i++ {
-			fn()
-		}
-	}(ctx)
+	for i := 0; i < num; i++ {
+		go fn()
+	}
 }
 
 func (s *Server) SetReleaseMode() {
