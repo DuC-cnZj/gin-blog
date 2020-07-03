@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/youngduc/go-blog/middleware"
 	"github.com/youngduc/go-blog/server"
 	"github.com/youngduc/go-blog/utils/interrupt"
 	"log"
@@ -60,7 +61,9 @@ func setUp() {
 	srv.Config = config.Init()
 	srv.DBConn = config.GetDB()
 	srv.RedisConn = config.GetRedis()
-	srv.EsConn = config.GetElastic()
+	srv.EsConn = nil
+	//srv.EsConn = config.GetElastic()
+	srv.MQConn = config.GetMQ()
 	srv.QueueNum = queueNum
 }
 
@@ -71,6 +74,7 @@ func run() {
 	if srv.IsProduction() {
 		srv.SetReleaseMode()
 	}
+	middleware.Init()
 
 	if IsFastMode() {
 		srv.EnableFastMode()

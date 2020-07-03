@@ -7,7 +7,6 @@ import (
 	"github.com/olivere/elastic/v6"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/utils/errors"
-	"log"
 	"net/http"
 	"time"
 )
@@ -19,11 +18,11 @@ var (
 )
 
 func Init() {
-	if config.Conn.DB == nil || config.Conn.EsClient == nil || config.Conn.RedisClient == nil {
-		log.Fatal("error init controller conn")
-	}
+	//if config.Conn.DB == nil || config.Conn.EsClient == nil || config.Conn.RedisClient == nil {
+	//	log.Fatal("error init controller conn")
+	//}
 	dbClient = config.Conn.DB
-	esClient = config.Conn.EsClient
+	//esClient = config.Conn.EsClient
 	redisClient = config.Conn.RedisClient
 }
 

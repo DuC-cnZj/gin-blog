@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
+	"github.com/streadway/amqp"
 	"log"
 	"os"
 	"time"
@@ -15,6 +16,7 @@ var Conn = struct {
 	DB          *gorm.DB
 	EsClient    *elastic.Client
 	RedisClient *redis.Client
+	MQ          *amqp.Connection
 }{}
 
 func GetRedis() *redis.Client {
@@ -56,8 +58,8 @@ func GetDB() *gorm.DB {
 	}
 	Conn.DB.LogMode(logMode)
 	Conn.DB.DB().SetMaxIdleConns(10)
-	Conn.DB.DB().SetMaxOpenConns(100)
-	Conn.DB.DB().SetConnMaxLifetime(time.Minute)
+	Conn.DB.DB().SetMaxOpenConns(50)
+	Conn.DB.DB().SetConnMaxLifetime(time.Hour)
 
 	return Conn.DB
 }
@@ -98,4 +100,20 @@ func GetElastic() *elastic.Client {
 	Conn.EsClient = client
 
 	return client
+}
+
+func GetMQ() (conn *amqp.Connection) {
+	var (
+		err   error
+		mqCfg = Cfg.MQ
+		url   = fmt.Sprintf("amqp://%s:%s@%s:%d/", mqCfg.UserName, mqCfg.Password, mqCfg.Host, mqCfg.Port)
+	)
+
+	conn, err = amqp.Dial(url)
+	if err != nil {
+		panic(err)
+	}
+	Conn.MQ = conn
+
+	return
 }

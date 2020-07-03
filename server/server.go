@@ -7,6 +7,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/jinzhu/gorm"
 	"github.com/olivere/elastic/v6"
+	"github.com/streadway/amqp"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/middleware"
@@ -32,6 +33,7 @@ type Server struct {
 	DBConn      *gorm.DB
 	RedisConn   *redis.Client
 	EsConn      *elastic.Client
+	MQConn      *amqp.Connection
 	HttpServer  *http.Server
 	Middlewares gin.HandlersChain
 	wg          sync.WaitGroup
@@ -112,8 +114,13 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 func (s *Server) Close() {
 	s.wg.Wait()
+	log.Println("s.wg.Wait done!")
 	s.DBConn.Close()
+	log.Println("db close!")
 	s.RedisConn.Close()
+	log.Println("redis close!")
+	s.MQConn.Close()
+	log.Println("mq close!")
 	log.Println("server close!")
 }
 

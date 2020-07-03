@@ -23,6 +23,10 @@ func Init(router *gin.Engine) *gin.Engine {
 
 	router.SetHTMLTemplate(parse)
 
+	router.GET("/debug/pprof/", func(context *gin.Context) {
+		pprof.Index(context.Writer, context.Request)
+	})
+
 	router.GET("/debug/pprof/profile", func(context *gin.Context) {
 		pprof.Profile(context.Writer, context.Request)
 	})
@@ -104,7 +108,6 @@ func systemInfo(context *gin.Context) {
 	)
 	osDic := make(map[string]interface{}, 0)
 	osDic["goOs"] = runtime.GOOS
-	osDic["logQueue"] = len(middleware.LogQueue)
 	osDic["arch"] = runtime.GOARCH
 	osDic["mem"] = runtime.MemProfileRate
 	osDic["compiler"] = runtime.Compiler

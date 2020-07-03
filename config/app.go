@@ -17,6 +17,7 @@ var (
 
 type Config struct {
 	App         *App
+	MQ          *MQ
 	DB          *DB
 	ES          *ES
 	Oauth       *oauth2.Config
@@ -65,8 +66,9 @@ type multiMatch struct {
 func Init() *Config {
 	Cfg = &Config{
 		DB:          InitDB(),
+		MQ:          InitMQ(),
 		App:         InitApp(),
-		ES:          initES(),
+		//ES:          initES(),
 		Oauth:       initOauth(),
 		Redis:       InitRedis(),
 		RedisPrefix: viper.GetString("REDIS_PREFIX"),

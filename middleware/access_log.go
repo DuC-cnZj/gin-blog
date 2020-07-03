@@ -3,23 +3,18 @@ package middleware
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+
 	"github.com/gin-gonic/gin"
+	 jsoniter "github.com/json-iterator/go"
+	"github.com/streadway/amqp"
 	"github.com/youngduc/go-blog/config"
 	"github.com/youngduc/go-blog/controllers"
 	"github.com/youngduc/go-blog/models"
 	"github.com/youngduc/go-blog/services"
 	"io/ioutil"
 	"log"
-	"sync"
 	"time"
 )
-
-const QueueSize = 100000
-const timeout = 1 * time.Second
-
-var LogQueue = make(chan models.History, QueueSize)
-var once = &sync.Once{}
 
 // todo 记录响应
 func HandleLog() gin.HandlerFunc {
@@ -92,30 +87,56 @@ func ShouldLog(c *gin.Context) bool {
 }
 
 func PushQueue(history models.History) {
-	select {
-	case LogQueue <- history:
-		// todo 应该push到mq
-	case <-time.After(timeout):
-		log.Println("log queue full!!")
+	marshal, err := json.Marshal(history)
+	if err != nil {
+		return
 	}
+
+	publish(marshal)
 }
 
 func HandleQueue(name interface{}, ctx context.Context) {
 	log.Println("init HandleQueue name: ", name)
+	consume(ctx)
+	log.Printf("worker :%v ctx done\n", name)
+}
+
+// mq handler
+var queueName = "access_log"
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+var channel *amqp.Channel
+var declare amqp.Queue
+func Init()  {
+	var err error
+	channel, err = config.Conn.MQ.Channel()
+	if err != nil {
+		panic(err)
+	}
+	declare, err = channel.QueueDeclare(queueName, true, false, false, false, nil)
+}
+
+func publish(data []byte) {
+	channel.Publish("", declare.Name, false, false, amqp.Publishing{
+		ContentType: "application/json",
+		Body:        data,
+	})
+}
+
+func consume(ctx context.Context) {
+	deliveries, err := channel.Consume(declare.Name, "", false, false, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
 	for {
 		select {
-		case history, ok := <-LogQueue:
-			if ok {
-				history.Create()
-			}
 		case <-ctx.Done():
-			once.Do(func() {
-				close(LogQueue)
-				log.Println("log queue closed.", len(LogQueue))
-			})
-			log.Println("log queue exit name: ", name)
-
 			return
+		case delivery := <-deliveries:
+			var h models.History
+			json.Unmarshal(delivery.Body, &h)
+			h.Create()
+			delivery.Ack(false)
 		}
 	}
 }
